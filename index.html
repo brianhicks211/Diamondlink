@@ -1,737 +1,1146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DiamondLink Elite</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        /* Hide scrollbars for clean mobile look */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        /* Smooth bottom sheet transitions */
-        .bottom-sheet {
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform: translateY(100%);
-        }
-        .bottom-sheet.open {
-            transform: translateY(0);
-        }
-        .backdrop {
-            transition: opacity 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .backdrop.open {
-            opacity: 1;
-            pointer-events: all;
-        }
-        /* Tap highlight removal for iOS */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DiamondLink Elite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --night: #020617;
+      --ink: #0f172a;
+      --emerald: #10b981;
+      --emerald-soft: rgba(16,185,129,.18);
+      --cyan-soft: rgba(34,211,238,.16);
+      --violet-soft: rgba(139,92,246,.16);
+      --glass: rgba(15,23,42,.68);
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      min-height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(16,185,129,.24), transparent 28%),
+        radial-gradient(circle at 85% 0%, rgba(56,189,248,.19), transparent 31%),
+        radial-gradient(circle at 50% 100%, rgba(139,92,246,.18), transparent 34%),
+        linear-gradient(135deg, #020617 0%, #08111f 48%, #030712 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at center, black, transparent 78%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -40%;
+      pointer-events: none;
+      background: conic-gradient(from 180deg at 50% 50%, transparent, rgba(16,185,129,.12), transparent, rgba(59,130,246,.10), transparent);
+      animation: aurora-spin 22s linear infinite;
+      opacity: .65;
+      filter: blur(48px);
+    }
+
+    @keyframes aurora-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes float-soft {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(120%); }
+    }
+
+    @keyframes slide-up {
+      from { transform: translateY(14px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .animate-in {
+      animation: slide-up .42s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .premium-device {
+      box-shadow:
+        0 40px 120px rgba(0,0,0,.55),
+        0 0 0 1px rgba(255,255,255,.08),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .app-glow {
+      position: absolute;
+      inset: -30% -20% auto -20%;
+      height: 360px;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(16,185,129,.35), transparent 34%),
+        radial-gradient(circle at 70% 30%, rgba(34,211,238,.24), transparent 38%);
+      filter: blur(34px);
+      pointer-events: none;
+      opacity: .8;
+    }
+
+    .glass-header {
+      background: linear-gradient(135deg, rgba(15,23,42,.92), rgba(15,23,42,.70));
+      backdrop-filter: blur(24px) saturate(140%);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 18px 45px rgba(2,6,23,.24);
+    }
+
+    .glass-dock {
+      background: rgba(255,255,255,.86);
+      backdrop-filter: blur(24px) saturate(150%);
+      box-shadow:
+        0 -22px 60px rgba(15,23,42,.12),
+        inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .bottom-sheet {
+      transition: transform 0.36s cubic-bezier(.22,1,.36,1);
+      transform: translateY(110%);
+    }
+
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .backdrop {
+      transition: opacity 0.28s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .premium-card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
+      border: 1px solid rgba(226,232,240,.88);
+      box-shadow:
+        0 20px 60px rgba(15,23,42,.08),
+        inset 0 1px 0 rgba(255,255,255,.9);
+    }
+
+    .dark-card {
+      background:
+        linear-gradient(145deg, rgba(15,23,42,.98), rgba(3,7,18,.98));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow:
+        0 28px 80px rgba(2,6,23,.38),
+        inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .shine {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shine::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 44%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+      transform: translateX(-120%);
+      animation: shimmer 5.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .diamond-field {
+      background:
+        radial-gradient(circle at 50% 52%, rgba(255,255,255,.10), transparent 15%),
+        repeating-linear-gradient(100deg, rgba(255,255,255,.045) 0 12px, rgba(0,0,0,.045) 12px 24px),
+        linear-gradient(180deg, #2f8f55, #166534);
+    }
+
+    .safe-bottom {
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    }
+
+    .btn-press {
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    }
+
+    .btn-press:active {
+      transform: scale(.96);
+    }
+
+    .line-clamp-1 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+    }
+  </style>
 </head>
-<body class="bg-slate-950 font-sans text-slate-100 flex items-center justify-center min-h-screen sm:p-4 overflow-hidden">
 
-    <!-- MOBILE DEVICE WRAPPER -->
-    <div id="app-wrapper" class="relative w-full h-[100dvh] sm:h-[850px] sm:w-[400px] bg-slate-900 sm:rounded-[40px] sm:border-[8px] sm:border-slate-800 shadow-2xl flex flex-col overflow-hidden">
-        
-        <!-- HEADER -->
-        <header class="relative z-10 shrink-0 border-b border-slate-200/10 bg-slate-900 px-5 py-4 text-white">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="shield" class="h-4 w-4 text-emerald-400"></i>
-                    <span class="text-[11px] font-black uppercase tracking-widest text-emerald-200">DiamondLink Elite</span>
-                </div>
-                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-black ring-1 ring-white/10">JD</div>
-            </div>
-        </header>
+<body class="text-slate-100 flex items-center justify-center min-h-screen sm:p-6">
+  <div id="app-wrapper" class="premium-device relative w-full h-[100dvh] sm:h-[884px] sm:w-[430px] bg-slate-950 sm:rounded-[44px] sm:border-[9px] sm:border-slate-900 flex flex-col overflow-hidden">
+    <div class="app-glow"></div>
 
-        <!-- MAIN CONTENT AREA -->
-        <main class="relative flex-1 overflow-y-auto bg-slate-50 no-scrollbar" id="main-container">
-            <div class="relative min-h-full p-4 pb-8 sm:p-6 flex flex-col" id="view-container">
-                <!-- Content injected by JS -->
+    <!-- HEADER -->
+    <header class="glass-header relative z-30 shrink-0 px-5 pt-4 pb-3 text-white">
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="flex h-8 w-8 items-center justify-center rounded-2xl bg-emerald-400/15 ring-1 ring-emerald-300/25 shadow-lg shadow-emerald-500/10">
+              <i data-lucide="diamond" class="h-4 w-4 text-emerald-300"></i>
+            </span>
+            <div>
+              <p class="text-[11px] font-black uppercase tracking-[.22em] text-emerald-200">DiamondLink</p>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Elite Game Day OS</p>
             </div>
-        </main>
-
-        <!-- BOTTOM DOCK -->
-        <div class="z-40 border-t border-slate-200 bg-white px-2 pb-safe pt-2 shrink-0" id="dock-container">
-            <div class="grid grid-cols-4 gap-1 pb-4 sm:pb-2">
-                <button onclick="app.navigate('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center py-2 transition-all text-emerald-600">
-                    <i data-lucide="home" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Home</span>
-                </button>
-                <button onclick="app.navigate('team')" id="nav-team" class="nav-btn flex flex-col items-center py-2 transition-all text-slate-400">
-                    <i data-lucide="users" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Team</span>
-                </button>
-                <button onclick="app.navigate('live')" id="nav-live" class="nav-btn flex flex-col items-center py-2 transition-all text-slate-400">
-                    <i data-lucide="video" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Live</span>
-                </button>
-                <button onclick="app.navigate('guest-hub')" id="nav-guest-hub" class="nav-btn flex flex-col items-center py-2 transition-all text-slate-400">
-                    <i data-lucide="user-plus" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Guests</span>
-                </button>
-            </div>
+          </div>
         </div>
 
-        <!-- GLOBAL MODALS (Bottom Sheets) -->
-        <div id="backdrop" class="backdrop absolute inset-0 z-[60] bg-slate-900/40 backdrop-blur-[4px]" onclick="app.closeAllSheets()"></div>
-        
-        <div id="sheet-container" class="bottom-sheet absolute bottom-0 left-0 right-0 z-[70] flex max-h-[85%] flex-col rounded-t-[32px] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.2)] overflow-hidden">
-            <div class="shrink-0 px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-slate-50">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 id="sheet-title" class="text-xl sm:text-2xl font-black text-slate-900">Title</h3>
-                        <p id="sheet-subtitle" class="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 mt-1">Subtitle</p>
-                    </div>
-                    <button onclick="app.closeAllSheets()" class="p-2 sm:p-3 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors"><i data-lucide="plus-circle" class="rotate-45 w-5 h-5"></i></button>
-                </div>
-            </div>
-            <div id="sheet-content" class="flex-1 overflow-y-auto px-4 sm:px-6 pt-4 pb-8 no-scrollbar text-slate-900 bg-slate-50/50">
-                <!-- Sheet content injected by JS -->
-            </div>
+        <div class="flex items-center gap-2">
+          <button onclick="app.openDjSheet()" class="btn-press hidden sm:flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/10">
+            <i data-lucide="music-2" class="h-4 w-4"></i>
+          </button>
+          <div class="flex items-center gap-2 rounded-full bg-white/10 py-1 pl-2 pr-1 ring-1 ring-white/10">
+            <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,.9)]"></span>
+            <span class="hidden sm:inline text-[9px] font-black uppercase tracking-widest text-emerald-100">Live</span>
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-300 to-cyan-300 text-[11px] font-black text-slate-950">JD</div>
+          </div>
         </div>
+      </div>
+    </header>
 
-    </div> <!-- /MOBILE DEVICE WRAPPER -->
+    <!-- MAIN CONTENT AREA -->
+    <main class="relative flex-1 overflow-y-auto bg-slate-100 no-scrollbar" id="main-container">
+      <div class="relative min-h-full p-4 pb-8 sm:p-5 flex flex-col" id="view-container"></div>
+    </main>
 
-    <!-- APPLICATION LOGIC -->
-    <script>
-        // --- DATA ---
-        const ROSTER = [
-            { id: 1, name: 'Jackson Smith', number: '2', primary: 'P/SS', stats: { AVG: '.345', OPS: '1.012', ERA: '3.12' }, walkup: { title: 'Enter Sandman', artist: 'Metallica' } },
-            { id: 2, name: 'Leo Martinez', number: '5', primary: 'C/3B', stats: { AVG: '.280', OPS: '.850', CS: '40%' }, walkup: { title: 'HUMBLE.', artist: 'Kendrick Lamar' } },
-            { id: 3, name: 'Carter Davis', number: '12', primary: '1B/P', stats: { AVG: '.410', OPS: '1.205', ERA: '2.45' }, walkup: { title: 'Kashmir', artist: 'Led Zeppelin' } },
-            { id: 4, name: 'Noah Wilson', number: '9', primary: 'CF', stats: { AVG: '.315', OPS: '.890', SB: '12' }, walkup: { title: 'Crazy Train', artist: 'Ozzy Osbourne' } },
-            { id: 5, name: 'Mason Taylor', number: '7', primary: '2B', stats: { AVG: '.290', OPS: '.800', SB: '5' }, walkup: { title: 'Thunderstruck', artist: 'AC/DC' } },
-            { id: 6, name: 'Ethan Clark', number: '10', primary: 'LF', stats: { AVG: '.305', OPS: '.820', SB: '2' }, walkup: { title: 'Hells Bells', artist: 'AC/DC' } },
-            { id: 7, name: 'Owen Harris', number: '3', primary: 'RF', stats: { AVG: '.270', OPS: '.750', SB: '1' }, walkup: { title: 'Welcome to the Jungle', artist: 'Guns N Roses' } },
-            { id: 8, name: 'Liam Walker', number: '14', primary: '3B', stats: { AVG: '.330', OPS: '.900', SB: '8' }, walkup: { title: 'Seven Nation Army', artist: 'White Stripes' } },
-            { id: 9, name: 'Aiden Young', number: '11', primary: 'SS', stats: { AVG: '.350', OPS: '.950', SB: '15' }, walkup: { title: 'Lose Yourself', artist: 'Eminem' } },
-        ];
-        const POSITIONS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+    <!-- BOTTOM DOCK -->
+    <div class="glass-dock z-40 shrink-0 border-t border-white/70 px-3 pt-2 safe-bottom" id="dock-container">
+      <div class="grid grid-cols-4 gap-1 rounded-[28px] bg-white/70 p-1 ring-1 ring-slate-200/80">
+        <button onclick="app.navigate('dashboard')" id="nav-dashboard" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-emerald-700 bg-emerald-50 shadow-sm">
+          <i data-lucide="home" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Home</span>
+        </button>
+        <button onclick="app.navigate('team')" id="nav-team" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
+          <i data-lucide="users" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Team</span>
+        </button>
+        <button onclick="app.navigate('live')" id="nav-live" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
+          <i data-lucide="radio" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Live</span>
+        </button>
+        <button onclick="app.navigate('guest-hub')" id="nav-guest-hub" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
+          <i data-lucide="user-plus" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Guests</span>
+        </button>
+      </div>
+    </div>
 
-        // --- GLOBAL APP STATE ---
-        const app = {
-            activeTab: 'dashboard',
-            playingSong: null,
-            clockTimer: null,
-            clockSeconds: 0,
-            clockRunning: true,
+    <!-- GLOBAL MODALS -->
+    <div id="backdrop" class="backdrop absolute inset-0 z-[60] bg-slate-950/55 backdrop-blur-[8px]" onclick="app.closeAllSheets()"></div>
 
-            // Guest Hub State
-            guestHub: {
-                search: '',
-                opportunities: [
-                    { id: 1, teamName: 'Texas Rattlers 12U Majors', date: 'Oct 14 - Oct 15', location: 'Plano, TX • Heritage Yards', positions: ['Catcher', 'Pitcher'], ageGroup: '12U', description: 'Looking for a primary catcher for a 4 game guarantee USSSA tournament.', postedBy: 'Coach Mike', applied: false, featured: true },
-                    { id: 2, teamName: 'Dallas Mudcats 11U AAA', date: 'Oct 21', location: 'Frisco, TX', positions: ['Outfield', 'Middle Infield'], ageGroup: '11U', description: 'Need a solid bat and utility fielder for a Saturday only round robin.', postedBy: 'Coach Sarah', applied: false, featured: false },
-                ]
-            },
+    <div id="sheet-container" class="bottom-sheet absolute bottom-0 left-0 right-0 z-[70] flex max-h-[86%] flex-col rounded-t-[36px] bg-white shadow-[0_-34px_100px_rgba(0,0,0,.32)] overflow-hidden">
+      <div class="shrink-0 border-b border-slate-100 bg-white px-6 pt-4 pb-5">
+        <div class="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-200"></div>
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 id="sheet-title" class="text-2xl font-black tracking-tight text-slate-950">Title</h3>
+            <p id="sheet-subtitle" class="mt-1 text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Subtitle</p>
+          </div>
+          <button onclick="app.closeAllSheets()" class="btn-press flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+      <div id="sheet-content" class="flex-1 overflow-y-auto px-4 sm:px-5 pt-4 pb-8 no-scrollbar text-slate-900 bg-slate-50"></div>
+    </div>
+  </div>
 
-            // Scorekeeping State Engine
-            score: {
-                gameName: 'Game 1',
-                inning: { number: 1, half: 'top' },
-                count: { balls: 0, strikes: 0, outs: 0 },
-                runs: { away: 0, home: 0 },
-                bases: { first: null, second: null, third: null },
-                playPhase: 'pitch', // pitch, fielding, result
-                selectedFielder: null,
-                tempHitLocation: null,
-                hitMarkers: [],
-                defense: { P: 1, C: 2, '1B': 3, '2B': 5, '3B': 8, SS: 9, LF: 6, CF: 4, RF: 7 },
-                lineup: ROSTER.map(p => p.id),
-                currentBatterIndex: 0,
-                showSprayChart: true,
-                assigningPos: null
-            },
+  <script>
+    const ROSTER = [
+      { id: 1, name: 'Jackson Smith', number: '2', primary: 'P/SS', stats: { AVG: '.345', OPS: '1.012', ERA: '3.12' }, walkup: { title: 'Enter Sandman', artist: 'Metallica' } },
+      { id: 2, name: 'Leo Martinez', number: '5', primary: 'C/3B', stats: { AVG: '.280', OPS: '.850', CS: '40%' }, walkup: { title: 'HUMBLE.', artist: 'Kendrick Lamar' } },
+      { id: 3, name: 'Carter Davis', number: '12', primary: '1B/P', stats: { AVG: '.410', OPS: '1.205', ERA: '2.45' }, walkup: { title: 'Kashmir', artist: 'Led Zeppelin' } },
+      { id: 4, name: 'Noah Wilson', number: '9', primary: 'CF', stats: { AVG: '.315', OPS: '.890', SB: '12' }, walkup: { title: 'Crazy Train', artist: 'Ozzy Osbourne' } },
+      { id: 5, name: 'Mason Taylor', number: '7', primary: '2B', stats: { AVG: '.290', OPS: '.800', SB: '5' }, walkup: { title: 'Thunderstruck', artist: 'AC/DC' } },
+      { id: 6, name: 'Ethan Clark', number: '10', primary: 'LF', stats: { AVG: '.305', OPS: '.820', SB: '2' }, walkup: { title: 'Hells Bells', artist: 'AC/DC' } },
+      { id: 7, name: 'Owen Harris', number: '3', primary: 'RF', stats: { AVG: '.270', OPS: '.750', SB: '1' }, walkup: { title: 'Welcome to the Jungle', artist: 'Guns N Roses' } },
+      { id: 8, name: 'Liam Walker', number: '14', primary: '3B', stats: { AVG: '.330', OPS: '.900', SB: '8' }, walkup: { title: 'Seven Nation Army', artist: 'White Stripes' } },
+      { id: 9, name: 'Aiden Young', number: '11', primary: 'SS', stats: { AVG: '.350', OPS: '.950', SB: '15' }, walkup: { title: 'Lose Yourself', artist: 'Eminem' } }
+    ];
 
-            // --- CLOCK METHODS ---
-            formatTime(seconds) {
-                const h = Math.floor(seconds / 3600);
-                const m = Math.floor((seconds % 3600) / 60);
-                const s = seconds % 60;
-                if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            },
+    const POSITIONS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
-            toggleClock() {
-                this.clockRunning = !this.clockRunning;
-                this.renderClockUI();
-            },
+    window.app = {
+      activeTab: 'dashboard',
+      playingSong: null,
+      clockTimer: null,
+      clockSeconds: 0,
+      clockRunning: true,
 
-            startClock() {
-                if (!this.clockTimer) {
-                    this.clockTimer = setInterval(() => {
-                        if (this.clockRunning) {
-                            this.clockSeconds++;
-                            this.renderClockUI();
-                        }
-                    }, 1000);
-                }
-            },
+      guestHub: {
+        search: '',
+        opportunities: [
+          { id: 1, teamName: 'Texas Rattlers 12U Majors', date: 'Oct 14 - Oct 15', location: 'Plano, TX • Heritage Yards', positions: ['Catcher', 'Pitcher'], ageGroup: '12U', description: 'Looking for a primary catcher for a 4 game guarantee USSSA tournament.', postedBy: 'Coach Mike', applied: false, featured: true },
+          { id: 2, teamName: 'Dallas Mudcats 11U AAA', date: 'Oct 21', location: 'Frisco, TX', positions: ['Outfield', 'Middle Infield'], ageGroup: '11U', description: 'Need a solid bat and utility fielder for a Saturday only round robin.', postedBy: 'Coach Sarah', applied: false, featured: false }
+        ]
+      },
 
-            renderClockUI() {
-                const timeEl = document.getElementById('clock-time');
-                const statusEl = document.getElementById('clock-status');
-                const iconEl = document.querySelector('#clock-icon');
-                
-                if (timeEl) timeEl.innerText = this.formatTime(this.clockSeconds);
-                if (statusEl) {
-                    statusEl.innerText = this.clockRunning ? 'Live' : 'Paused';
-                    if (this.clockRunning) {
-                        statusEl.className = "text-[8px] uppercase font-bold mt-0.5 text-emerald-400 animate-pulse";
-                    } else {
-                        statusEl.className = "text-[8px] uppercase font-bold mt-0.5 text-slate-500";
-                    }
-                }
-                if (iconEl) {
-                    if (this.clockRunning) {
-                        iconEl.classList.remove('text-amber-400');
-                        iconEl.classList.add('text-emerald-400');
-                    } else {
-                        iconEl.classList.remove('text-emerald-400');
-                        iconEl.classList.add('text-amber-400');
-                    }
-                }
-            },
+      score: {
+        gameName: 'Game 1',
+        inning: { number: 1, half: 'top' },
+        count: { balls: 0, strikes: 0, outs: 0 },
+        runs: { away: 0, home: 0 },
+        bases: { first: null, second: null, third: null },
+        playPhase: 'pitch',
+        selectedFielder: null,
+        tempHitLocation: null,
+        hitMarkers: [],
+        defense: { P: 1, C: 2, '1B': 3, '2B': 5, '3B': 8, SS: 9, LF: 6, CF: 4, RF: 7 },
+        lineup: ROSTER.map(p => p.id),
+        currentBatterIndex: 0,
+        showSprayChart: true,
+        assigningPos: null
+      },
 
-            // --- NAVIGATION ---
-            navigate(tab) {
-                this.activeTab = tab;
-                
-                // Update Dock Colors
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('text-emerald-600');
-                    btn.classList.add('text-slate-400');
-                });
-                document.getElementById(`nav-${tab}`)?.classList.remove('text-slate-400');
-                document.getElementById(`nav-${tab}`)?.classList.add('text-emerald-600');
+      getPlayer(id) {
+        return ROSTER.find(p => p.id === id) || null;
+      },
 
-                this.render();
-            },
+      formatTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      },
 
-            // --- BOTTOM SHEETS ---
-            openSheet(title, subtitle, contentHtml) {
-                document.getElementById('sheet-title').innerText = title;
-                document.getElementById('sheet-subtitle').innerText = subtitle;
-                document.getElementById('sheet-content').innerHTML = contentHtml;
-                document.getElementById('backdrop').classList.add('open');
-                document.getElementById('sheet-container').classList.add('open');
-                lucide.createIcons();
-            },
-            closeAllSheets() {
-                document.getElementById('backdrop').classList.remove('open');
-                document.getElementById('sheet-container').classList.remove('open');
-                this.score.assigningPos = null;
-            },
+      toggleClock() {
+        this.clockRunning = !this.clockRunning;
+        this.renderClockUI();
+      },
 
-            // --- ACTIONS ---
-            toggleSong(id) {
-                this.playingSong = this.playingSong === id ? null : id;
-                this.render();
-                if(this.activeTab === 'score') this.openDjSheet();
-            },
-            applyForGuest(id) {
-                const opp = this.guestHub.opportunities.find(o => o.id === id);
-                if (opp) opp.applied = true;
-                this.render();
-            },
-
-            // --- SCORE ENGINE ACTIONS ---
-            scoreAction(action, payload) {
-                const s = this.score;
-                
-                if (action === 'PITCH') {
-                    if (payload === 'in_play') {
-                        s.playPhase = 'fielding';
-                        s.selectedFielder = null;
-                    } else if (payload === 'ball') {
-                        s.count.balls++;
-                        if (s.count.balls >= 4) { s.bases.first = s.lineup[s.currentBatterIndex]; this.advanceBatter(); }
-                    } else if (payload === 'strike') {
-                        s.count.strikes++;
-                        if (s.count.strikes >= 3) { s.count.outs++; this.advanceBatter(); }
-                    } else if (payload === 'foul') {
-                        if (s.count.strikes < 2) s.count.strikes++;
-                    } else if (payload === 'hbp') {
-                        s.bases.first = s.lineup[s.currentBatterIndex]; this.advanceBatter();
-                    }
-                } 
-                else if (action === 'SELECT_FIELDER') {
-                    if(s.playPhase === 'fielding') {
-                        s.selectedFielder = payload;
-                        s.playPhase = 'result';
-                    } else {
-                        // Open assignment sheet
-                        s.assigningPos = payload;
-                        this.openAssignSheet(payload);
-                    }
-                }
-                else if (action === 'FIELD_TAP') {
-                    if(s.playPhase === 'fielding') s.tempHitLocation = payload;
-                }
-                else if (action === 'RESOLVE') {
-                    if (s.tempHitLocation) {
-                        s.hitMarkers.push({ ...s.tempHitLocation, result: payload });
-                    }
-                    if (payload === 'out') { s.count.outs++; }
-                    else if (payload === 'single') { s.bases.first = s.lineup[s.currentBatterIndex]; }
-                    else if (payload === 'error') { s.bases.first = s.lineup[s.currentBatterIndex]; }
-                    
-                    s.tempHitLocation = null;
-                    s.playPhase = 'pitch';
-                    s.selectedFielder = null;
-                    this.advanceBatter();
-                }
-                else if (action === 'ASSIGN_PLAYER') {
-                    if(payload.id === null) {
-                        s.defense[s.assigningPos] = null;
-                    } else {
-                        // Clear from old pos
-                        for(let pos of POSITIONS) { if(s.defense[pos] === payload.id) s.defense[pos] = null; }
-                        s.defense[s.assigningPos] = payload.id;
-                    }
-                    this.closeAllSheets();
-                }
-                else if (action === 'SET_BATTER') {
-                    s.currentBatterIndex = s.lineup.indexOf(payload);
-                    this.closeAllSheets();
-                }
-                else if (action === 'TOGGLE_SPRAY') {
-                    s.showSprayChart = !s.showSprayChart;
-                }
-
-                // Inning Advance Logic
-                if (s.count.outs >= 3) {
-                    s.count = { balls: 0, strikes: 0, outs: 0 };
-                    s.bases = { first: null, second: null, third: null };
-                    if (s.inning.half === 'top') s.inning.half = 'bottom';
-                    else { s.inning.half = 'top'; s.inning.number++; }
-                }
-
-                this.render();
-            },
-
-            advanceBatter() {
-                this.score.count = { balls: 0, strikes: 0, outs: this.score.count.outs };
-                this.score.currentBatterIndex = (this.score.currentBatterIndex + 1) % this.score.lineup.length;
-            },
-
-            // --- BOTTOM SHEET GENERATORS ---
-            openDjSheet() {
-                let html = `<div class="space-y-3">`;
-                ROSTER.forEach(p => {
-                    const isPlaying = this.playingSong === p.id;
-                    const playingClass = isPlaying ? "border-emerald-300 bg-emerald-50 scale-[1.02]" : "border-slate-200 bg-white";
-                    const btnClass = isPlaying ? "bg-emerald-600 text-white shadow-emerald-500/20" : "bg-slate-100 text-slate-500";
-                    const icon = isPlaying ? "pause" : "play";
-                    
-                    html += `
-                        <div class="flex items-center justify-between p-4 rounded-3xl border shadow-sm transition-all ${playingClass}">
-                            <div class="flex items-center gap-4">
-                                <div class="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-700 shrink-0">${p.number}</div>
-                                <div><p class="font-black text-sm text-slate-900 line-clamp-1">${p.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 truncate max-w-[140px]">${p.walkup?.title || 'Unknown'}</p></div>
-                            </div>
-                            <button onclick="app.toggleSong(${p.id})" class="h-10 w-10 shrink-0 rounded-full flex items-center justify-center shadow-lg ${btnClass}"><i data-lucide="${icon}" class="w-4 h-4 ${!isPlaying?'ml-1':''}"></i></button>
-                        </div>
-                    `;
-                });
-                html += `</div>`;
-                this.openSheet("Walkup Music", "DJ Soundboard", html);
-            },
-
-            openAssignSheet(pos) {
-                let html = `
-                    <div class="space-y-2 pb-4 text-slate-900">
-                        <button onclick="app.scoreAction('ASSIGN_PLAYER', {id: null})" class="w-full py-5 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs uppercase mb-4 active:bg-slate-50">Clear Position</button>
-                `;
-                ROSTER.forEach(p => {
-                    const isAssigned = this.score.defense[pos] === p.id;
-                    const cls = isAssigned ? "bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/10 shadow-lg" : "bg-white border-slate-100";
-                    html += `
-                        <button onclick="app.scoreAction('ASSIGN_PLAYER', {id: ${p.id}})" class="w-full flex items-center justify-between p-5 rounded-2xl border transition-all active:scale-[0.98] ${cls}">
-                            <span class="font-black">${p.number}. ${p.name}</span>
-                            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">${p.primary}</span>
-                        </button>
-                    `;
-                });
-                html += `</div>`;
-                this.openSheet(`Assign ${pos}`, "Team Roster", html);
-            },
-
-            openLineupSheet() {
-                let html = `<div class="space-y-2 pb-4 text-slate-900">`;
-                this.score.lineup.forEach((id, idx) => {
-                    const p = ROSTER.find(x => x.id === id);
-                    const isCurrent = this.score.currentBatterIndex === idx;
-                    const cls = isCurrent ? "bg-emerald-50 border-emerald-500 shadow-lg" : "bg-white border-slate-100";
-                    const numCls = isCurrent ? "text-emerald-700" : "text-slate-300";
-                    const nameCls = isCurrent ? "text-emerald-900" : "text-slate-900";
-                    html += `
-                        <button onclick="app.scoreAction('SET_BATTER', ${id})" class="w-full flex items-center gap-4 p-5 rounded-2xl border transition-all active:scale-[0.98] ${cls}">
-                            <span class="text-xs font-black ${numCls}">${idx+1}.</span>
-                            <span class="font-black text-sm ${nameCls}">${p.name}</span>
-                        </button>
-                    `;
-                });
-                html += `</div>`;
-                this.openSheet("Select Next Batter", "Lineup Order", html);
-            },
-
-            // --- RENDERERS ---
-            render() {
-                const container = document.getElementById('view-container');
-                let content = '';
-
-                if (this.activeTab === 'dashboard') content = this.renderDashboard();
-                else if (this.activeTab === 'team') content = this.renderTeam();
-                else if (this.activeTab === 'live') content = this.renderLive();
-                else if (this.activeTab === 'guest-hub') content = this.renderGuestHub();
-                else if (this.activeTab === 'recap') content = this.renderRecap();
-                else if (this.activeTab === 'score') content = this.renderScore();
-
-                container.innerHTML = content;
-                lucide.createIcons();
-
-                // Attach field event listener if score view
-                if(this.activeTab === 'score') {
-                    document.getElementById('css-field')?.addEventListener('click', (e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = ((e.clientX - rect.left) / rect.width) * 100;
-                        const y = ((e.clientY - rect.top) / rect.height) * 100;
-                        this.scoreAction('FIELD_TAP', {x, y});
-                    });
-                }
-            },
-
-            renderDashboard() {
-                return `
-                    <div class="space-y-4 text-slate-900 pb-4">
-                        <div class="rounded-3xl bg-slate-900 p-6 text-white shadow-xl relative overflow-hidden">
-                            <div class="relative z-10">
-                                <h2 class="text-2xl font-black mb-2 leading-tight">Elite Game Day Command</h2>
-                                <p class="text-slate-400 text-sm mb-6 max-w-[240px]">Manage live scoring, roster DJ, and recruiting.</p>
-                                <button onclick="app.navigate('score')" class="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 font-black shadow-lg shadow-emerald-500/30 active:scale-95 transition-transform">
-                                    <i data-lucide="activity" class="w-5 h-5"></i> Score Live Game
-                                </button>
-                            </div>
-                            <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><i data-lucide="trophy" class="w-24 h-24"></i></div>
-                        </div>
-                        <div class="rounded-3xl bg-white p-5 border border-slate-200 shadow-sm">
-                            <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Last Activity</h3>
-                            <button onclick="app.navigate('recap')" class="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-all">
-                            <div class="flex items-center gap-4">
-                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 font-black">W</div>
-                                <div class="text-left"><p class="font-bold text-slate-900 line-clamp-1">Won 15-3 vs Legacy</p><p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Game Recap</p></div>
-                            </div>
-                            <i data-lucide="chevron-right" class="text-slate-300 w-5 h-5 shrink-0"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            },
-
-            renderTeam() {
-                let html = `
-                    <div class="space-y-4 text-slate-900 pb-4">
-                        <div class="flex items-center justify-between px-1 mb-2">
-                            <h2 class="text-2xl font-black">12U Roster</h2>
-                            <button class="h-10 w-10 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-full"><i data-lucide="plus-circle" class="w-5 h-5"></i></button>
-                        </div>
-                `;
-                ROSTER.forEach(p => {
-                    const isPlaying = this.playingSong === p.id;
-                    const ring = isPlaying ? "border-emerald-300 shadow-[0_20px_60px_rgba(16,185,129,0.2)]" : "border-slate-200 shadow-sm";
-                    const btnClass = isPlaying ? "bg-emerald-500 text-white shadow-lg scale-110" : "bg-slate-200 text-slate-500";
-                    const icon = isPlaying ? "pause" : "play";
-                    
-                    html += `
-                        <div class="rounded-3xl border bg-white overflow-hidden transition-all ${ring}">
-                            <div class="bg-slate-900 p-4 text-white flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="h-12 w-12 shrink-0 rounded-xl bg-white/10 flex items-center justify-center font-black ring-1 ring-white/10">${p.number}</div>
-                                    <div><p class="font-black line-clamp-1">${p.name}</p><p class="text-[10px] uppercase font-bold text-emerald-400 mt-0.5">${p.primary}</p></div>
-                                </div>
-                                <i data-lucide="star" class="text-amber-400 w-4 h-4 shrink-0"></i>
-                            </div>
-                            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <i data-lucide="music" class="text-emerald-500 w-4 h-4 shrink-0"></i>
-                                    <div><p class="text-xs font-black text-slate-800 truncate max-w-[160px] sm:max-w-[200px]">${p.walkup?.title || 'Track'}</p><p class="text-[10px] text-slate-400 mt-0.5">${p.walkup?.artist || 'Artist'}</p></div>
-                                </div>
-                                <button onclick="app.toggleSong(${p.id})" class="h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition-all ${btnClass}">
-                                    <i data-lucide="${icon}" class="w-4 h-4 ${!isPlaying ? 'ml-0.5' : ''}"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                return html + `</div>`;
-            },
-
-            renderLive() {
-                return `
-                    <div class="space-y-4 text-slate-900 pb-4">
-                        <h2 class="text-2xl font-black px-1">Live Games</h2>
-                        <div class="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-                            <div class="aspect-video bg-slate-900 relative">
-                                <div class="absolute top-4 left-4 bg-red-600 px-2 py-1 rounded text-[10px] font-black uppercase flex items-center gap-2 z-10 shadow-lg">
-                                    <div class="h-1.5 w-1.5 rounded-full bg-white animate-[pulse_1s_ease-in-out_infinite]"></div> Live
-                                </div>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <i data-lucide="play-circle" class="w-12 h-12 text-white opacity-40 hover:opacity-80 transition-opacity cursor-pointer"></i>
-                                </div>
-                            </div>
-                            <div class="p-4 border-t border-slate-100 flex justify-between items-end">
-                                <div><p class="font-black line-clamp-1">Texas Rattlers vs Mudcats</p><p class="text-xs text-slate-400 mt-1">USSSA State Championship</p></div>
-                                <div class="text-right shrink-0 ml-2"><p class="text-xs font-black text-emerald-600 uppercase tracking-widest">Top 4th</p><p class="text-[10px] font-bold text-slate-400 mt-1">142 viewers</p></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-
-            renderGuestHub() {
-                let html = `
-                    <div class="space-y-4 text-slate-900 pb-4">
-                        <h2 class="text-2xl font-black px-1">Guest Hub</h2>
-                        <div class="relative">
-                            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
-                            <input type="text" placeholder="Search pickup games..." class="w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 py-3.5 text-sm font-bold shadow-sm outline-none text-slate-900 focus:ring-2 ring-emerald-500/20" />
-                        </div>
-                `;
-                this.guestHub.opportunities.forEach(opp => {
-                    const btnCls = opp.applied ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-900 text-white shadow-lg active:scale-95";
-                    const btnText = opp.applied ? "Applied" : "Message Coach";
-                    html += `
-                        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded">${opp.ageGroup}</span>
-                                ${opp.featured ? `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-1 rounded border border-emerald-100">Featured</span>` : ''}
-                            </div>
-                            <h3 class="font-black text-lg mb-1 line-clamp-1">${opp.teamName}</h3>
-                            <p class="text-xs text-slate-500 mb-3">${opp.location}</p>
-                            <p class="text-xs text-slate-600 mb-5 leading-relaxed">${opp.description}</p>
-                            <button onclick="app.applyForGuest(${opp.id})" ${opp.applied?'disabled':''} class="w-full py-3.5 rounded-xl font-black text-sm transition-all ${btnCls}">${btnText}</button>
-                        </div>
-                    `;
-                });
-                return html + `</div>`;
-            },
-
-            renderRecap() {
-                return `
-                    <div class="rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm text-slate-900 pb-6 mb-4 flex flex-col h-full min-h-[500px]">
-                        <div class="bg-slate-900 p-6 text-white text-center relative shrink-0">
-                            <button onclick="app.navigate('dashboard')" class="absolute left-6 top-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
-                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 mt-2 sm:mt-0">Sat Mar 28, 7:00 PM ET</p>
-                            <div class="flex items-center justify-center gap-8">
-                                <div class="flex flex-col items-center"><p class="text-4xl font-black mb-1">15</p><p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">CNSC</p></div>
-                                <div class="h-12 w-px bg-white/20"></div>
-                                <div class="flex flex-col items-center"><p class="text-4xl font-black mb-1">3</p><p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">DMND</p></div>
-                            </div>
-                        </div>
-                        <div class="p-6 flex-1 overflow-y-auto no-scrollbar">
-                            <h2 class="text-2xl font-black mb-4 leading-tight">Ayden collected three hits as Canes Central Alexander 11U defeat Diamond Legacy</h2>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-6 tracking-widest">March 28, 2026 vs Diamond Legacy 11U Red</p>
-                            <div class="space-y-4 text-sm text-slate-600 leading-relaxed font-medium">
-                                <p>Ayden collected three hits in four at bats as Canes Central Alexander 11U defeated Diamond Legacy 11U Red 15 to 3 on Saturday.</p>
-                                <p>Canes Central Alexander 11U opened the scoring in the top of the first thanks to two walks.</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-
-            renderScore() {
-                const s = this.score;
-                const currentBatter = ROSTER.find(p => p.id === s.lineup[s.currentBatterIndex]) || ROSTER[0];
-                const inningStr = `${s.inning.half === 'top' ? 'Top' : 'Bot'} ${s.inning.number}`;
-                
-                const clockIconColor = this.clockRunning ? 'text-emerald-400' : 'text-amber-400';
-                const clockStatusClass = this.clockRunning ? 'text-emerald-400 animate-pulse' : 'text-slate-500';
-                const clockStatusText = this.clockRunning ? 'Live' : 'Paused';
-                const timeStr = this.formatTime(this.clockSeconds);
-
-                // Build Fielders HTML
-                let fieldersHtml = '';
-                const posCoords = {
-                    P: { l: '50%', t: '59%' }, C: { l: '50%', t: '94%' },
-                    '1B': { l: '78%', t: '48%' }, '2B': { l: '62%', t: '30%' },
-                    '3B': { l: '22%', t: '48%' }, SS: { l: '38%', t: '30%' },
-                    LF: { l: '18%', t: '15%' }, CF: { l: '50%', t: '10%' }, RF: { l: '82%', t: '15%' }
-                };
-
-                POSITIONS.forEach(pos => {
-                    const assignedId = s.defense[pos];
-                    const player = ROSTER.find(p => p.id === assignedId);
-                    const isSelected = s.selectedFielder === pos;
-                    const isFielding = s.playPhase === 'fielding';
-                    
-                    let btnClass = "bg-slate-900 border-slate-700 text-white opacity-90";
-                    if(isSelected) btnClass = "bg-amber-400 border-white scale-125 z-40 text-amber-900";
-                    else if(isFielding) btnClass = "bg-emerald-400 border-white animate-[pulse_1s_ease-in-out_infinite] text-emerald-900";
-
-                    fieldersHtml += `
-                        <div class="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-30" style="left: ${posCoords[pos].l}; top: ${posCoords[pos].t}">
-                            <button onclick="event.stopPropagation(); app.scoreAction('SELECT_FIELDER', '${pos}')" class="h-8 w-8 rounded-full border-2 font-black text-[9px] shadow-lg transition-all ${btnClass}">${pos}</button>
-                            ${player && !isFielding ? `<div class="bg-black/60 backdrop-blur-sm text-[8px] font-bold text-white px-1 py-0.5 rounded mt-0.5 whitespace-nowrap">${player.name.split(' ')[1]}</div>` : ''}
-                        </div>
-                    `;
-                });
-
-                // Build Hit Markers HTML
-                let markersHtml = '';
-                if(s.showSprayChart) {
-                    s.hitMarkers.forEach(m => {
-                        const bg = m.result === 'out' ? 'bg-red-500' : 'bg-emerald-500';
-                        markersHtml += `<div class="absolute h-2 w-2 rounded-full -translate-x-1/2 -translate-y-1/2 border border-white shadow-sm pointer-events-none z-10 ${bg}" style="left: ${m.x}%; top: ${m.y}%"></div>`;
-                    });
-                }
-                if(s.tempHitLocation) {
-                    markersHtml += `<div class="absolute h-6 w-6 rounded-full -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-amber-500 shadow-lg z-20 flex items-center justify-center" style="left: ${s.tempHitLocation.x}%; top: ${s.tempHitLocation.y}%"><div class="h-1 w-1 bg-white rounded-full animate-ping"></div></div>`;
-                }
-
-                // Controls HTML
-                let controlsHtml = '';
-                const btnBase = "w-full py-4 rounded-2xl border font-black text-[11px] sm:text-xs uppercase tracking-widest transition-all active:scale-95";
-                const tBlue = "bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-100";
-                const tRed = "bg-red-50 text-red-700 border-red-200 ring-1 ring-red-100";
-                const tSlate = "bg-slate-100 text-slate-600 border-slate-200";
-                const tEmerald = "bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 border-emerald-500";
-                const tAmber = "bg-amber-500 text-white shadow-xl shadow-amber-500/30 border-amber-400";
-
-                if (s.playPhase === 'pitch') {
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="app.scoreAction('PITCH', 'ball')" class="${btnBase} ${tBlue}">Ball</button>
-                                <button onclick="app.scoreAction('PITCH', 'strike')" class="${btnBase} ${tRed}">Strike</button>
-                                <button onclick="app.scoreAction('PITCH', 'foul')" class="${btnBase} ${tSlate}">Foul</button>
-                                <button onclick="app.scoreAction('PITCH', 'in_play')" class="${btnBase} ${tEmerald}">In Play</button>
-                                <div class="col-span-2"><button onclick="app.scoreAction('PITCH', 'hbp')" class="${btnBase} ${tAmber}">Hit By Pitch</button></div>
-                            </div>
-                            <div class="flex items-center justify-between text-xs font-black uppercase text-slate-400 tracking-widest border-t border-slate-100 pt-4">
-                                <span>B: ${s.count.balls}</span><span>S: ${s.count.strikes}</span><span class="text-slate-900 font-black">Outs: ${s.count.outs}</span>
-                            </div>
-                        </div>
-                    `;
-                } else if (s.playPhase === 'fielding') {
-                    controlsHtml = `
-                        <div class="py-6 text-center">
-                            <div class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-6 py-3 rounded-2xl font-black animate-bounce shadow-sm border border-emerald-200">
-                                <i data-lucide="target" class="w-5 h-5"></i> Tap Fielder & Hit Location
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    controlsHtml = `
-                        <div class="space-y-4">
-                            <p class="text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Play from ${s.selectedFielder}</p>
-                            <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                                <button onclick="app.scoreAction('RESOLVE', 'out')" class="${btnBase} ${tRed}">Out</button>
-                                <button onclick="app.scoreAction('RESOLVE', 'single')" class="${btnBase} ${tEmerald}">Hit</button>
-                                <button onclick="app.scoreAction('RESOLVE', 'error')" class="${btnBase} ${tAmber}">Error</button>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // Base Colors
-                const b1 = s.bases.first ? "bg-emerald-500 ring-2 ring-emerald-300 z-10 scale-125" : "bg-white";
-                const b2 = s.bases.second ? "bg-emerald-500 ring-2 ring-emerald-300 z-10 scale-125" : "bg-white";
-                const b3 = s.bases.third ? "bg-emerald-500 ring-2 ring-emerald-300 z-10 scale-125" : "bg-white";
-
-                return `
-                    <div class="rounded-[32px] bg-white border border-slate-200 overflow-hidden shadow-2xl text-slate-900 flex flex-col h-full min-h-full">
-                        <!-- SCORE HEADER -->
-                        <div class="bg-slate-900 p-4 text-white flex items-center justify-between shrink-0 relative overflow-hidden">
-                            <div class="absolute inset-0 bg-emerald-500/5"></div>
-                            <button onclick="app.navigate('dashboard')" class="p-2 relative z-10 hover:bg-white/10 rounded-full transition-colors"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                            <div class="text-center relative z-10">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-0.5">${inningStr}</p>
-                                <p class="font-black text-xl tracking-tighter">${s.runs.away} — ${s.runs.home}</p>
-                            </div>
-                            <div class="flex gap-3 relative z-10 items-center">
-                                <div class="text-right flex flex-col items-end">
-                                    <button onclick="app.toggleClock()" class="font-mono text-xs font-bold text-white flex items-center gap-1 hover:text-slate-300 transition-colors">
-                                        <i data-lucide="clock" id="clock-icon" class="w-3 h-3 ${clockIconColor}"></i>
-                                        <span id="clock-time">${timeStr}</span>
-                                    </button>
-                                    <div id="clock-status" class="text-[8px] uppercase font-bold mt-0.5 ${clockStatusClass}">${clockStatusText}</div>
-                                </div>
-                                <button onclick="app.openDjSheet()" class="p-2.5 rounded-2xl bg-white/10 active:scale-90 transition-transform"><i data-lucide="music" class="w-[18px] h-[18px]"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- MAIN PLAY AREA -->
-                        <div class="flex-1 p-4 overflow-y-auto no-scrollbar space-y-4 bg-slate-50 flex flex-col">
-                            <!-- Batter Strip -->
-                            <div class="p-4 rounded-3xl bg-white border border-slate-200 flex justify-between items-center shadow-sm shrink-0">
-                                <div><p class="text-[10px] font-bold uppercase text-slate-400 mb-0.5 tracking-widest">Next Batter</p><p class="text-lg font-black text-slate-900 line-clamp-1">#${currentBatter.number} ${currentBatter.name.split(' ')[1]}</p></div>
-                                <button onclick="app.openLineupSheet()" class="px-4 py-2 ml-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-widest ring-1 ring-emerald-100 active:bg-emerald-100 shrink-0">Lineup</button>
-                            </div>
-
-                            <!-- PURE CSS FIELD -->
-                            <div class="flex-1 flex flex-col justify-center max-w-[360px] mx-auto w-full">
-                                <div id="css-field" class="aspect-square w-full rounded-3xl bg-[#3e8e4f] relative overflow-hidden border-2 border-slate-300 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)] cursor-crosshair">
-                                    <!-- Outfield Stripes -->
-                                    <div class="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0%,transparent_10%,rgba(0,0,0,0.06)_10%,rgba(0,0,0,0.06)_20%)] pointer-events-none"></div>
-
-                                    <!-- Foul Lines -->
-                                    <div class="absolute left-1/2 bottom-[16%] w-0.5 h-[150%] bg-white/60 origin-bottom rotate-45 pointer-events-none"></div>
-                                    <div class="absolute left-1/2 bottom-[16%] w-0.5 h-[150%] bg-white/60 origin-bottom -rotate-45 pointer-events-none"></div>
-
-                                    <!-- Infield Dirt -->
-                                    <div class="absolute left-1/2 top-[54%] aspect-square w-[42%] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xl border-2 border-[#945C33] bg-[#c08457] pointer-events-none shadow-sm"></div>
-
-                                    <!-- Infield Grass -->
-                                    <div class="absolute left-1/2 top-[54%] aspect-square w-[28%] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded bg-[#3e8e4f] pointer-events-none shadow-[inset_0_0_10px_rgba(0,0,0,0.15)]"></div>
-
-                                    <!-- Home Plate Dirt -->
-                                    <div class="absolute left-1/2 top-[84%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c08457] pointer-events-none"></div>
-
-                                    <!-- Pitcher's Mound -->
-                                    <div class="absolute left-1/2 top-[54%] h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c08457] border border-[#945C33] pointer-events-none shadow-sm"></div>
-                                    <div class="absolute left-1/2 top-[54%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 bg-white pointer-events-none rounded-full"></div>
-
-                                    <!-- Bases -->
-                                    <div class="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-sm transition-colors duration-300 pointer-events-none ${b2}" style="left: 50%; top: 24%"></div>
-                                    <div class="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-sm transition-colors duration-300 pointer-events-none ${b1}" style="left: 80%; top: 54%"></div>
-                                    <div class="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-sm transition-colors duration-300 pointer-events-none ${b3}" style="left: 20%; top: 54%"></div>
-                                    <div class="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm pointer-events-none" style="left: 50%; top: 84%; clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%)"></div>
-
-                                    <!-- Spray Chart Toggle -->
-                                    <button onclick="event.stopPropagation(); app.scoreAction('TOGGLE_SPRAY')" class="absolute top-2 right-2 z-20 h-7 w-7 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md hover:bg-black/70 transition-colors">
-                                        <i data-lucide="map" class="w-[14px] h-[14px] ${s.showSprayChart ? 'text-emerald-400' : 'text-white opacity-50'}"></i>
-                                    </button>
-
-                                    <!-- Injected Markers & Fielders -->
-                                    ${markersHtml}
-                                    ${fieldersHtml}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- CONTROLS -->
-                        <div class="p-4 bg-white border-t border-slate-200 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10">
-                            ${controlsHtml}
-                        </div>
-                    </div>
-                `;
+      startClock() {
+        if (!this.clockTimer) {
+          this.clockTimer = setInterval(() => {
+            if (this.clockRunning) {
+              this.clockSeconds++;
+              this.renderClockUI();
             }
+          }, 1000);
+        }
+      },
+
+      renderClockUI() {
+        const timeEl = document.getElementById('clock-time');
+        const statusEl = document.getElementById('clock-status');
+        const iconEl = document.querySelector('#clock-icon');
+
+        if (timeEl) timeEl.innerText = this.formatTime(this.clockSeconds);
+        if (statusEl) {
+          statusEl.innerText = this.clockRunning ? 'Live' : 'Paused';
+          statusEl.className = this.clockRunning
+            ? 'text-[8px] uppercase font-black mt-0.5 text-emerald-300 animate-pulse'
+            : 'text-[8px] uppercase font-black mt-0.5 text-amber-300';
+        }
+        if (iconEl) {
+          iconEl.classList.toggle('text-emerald-300', this.clockRunning);
+          iconEl.classList.toggle('text-amber-300', !this.clockRunning);
+        }
+      },
+
+      navigate(tab) {
+        this.activeTab = tab;
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.remove('text-emerald-700', 'bg-emerald-50', 'shadow-sm');
+          btn.classList.add('text-slate-400');
+        });
+
+        const nav = document.getElementById(`nav-${tab}`);
+        if (nav) {
+          nav.classList.remove('text-slate-400');
+          nav.classList.add('text-emerald-700', 'bg-emerald-50', 'shadow-sm');
+        }
+
+        this.render();
+      },
+
+      openSheet(title, subtitle, contentHtml) {
+        document.getElementById('sheet-title').innerText = title;
+        document.getElementById('sheet-subtitle').innerText = subtitle;
+        document.getElementById('sheet-content').innerHTML = contentHtml;
+        document.getElementById('backdrop').classList.add('open');
+        document.getElementById('sheet-container').classList.add('open');
+        this.refreshIcons();
+      },
+
+      closeAllSheets() {
+        document.getElementById('backdrop').classList.remove('open');
+        document.getElementById('sheet-container').classList.remove('open');
+        this.score.assigningPos = null;
+      },
+
+      refreshIcons() {
+        if (window.lucide) lucide.createIcons();
+      },
+
+      toggleSong(id) {
+        this.playingSong = this.playingSong === id ? null : id;
+        this.render();
+        if (this.activeTab === 'score') this.openDjSheet();
+      },
+
+      applyForGuest(id) {
+        const opp = this.guestHub.opportunities.find(o => o.id === id);
+        if (opp) opp.applied = true;
+        this.render();
+      },
+
+      scoreAction(action, payload) {
+        const s = this.score;
+
+        if (action === 'PITCH') {
+          if (payload === 'in_play') {
+            s.playPhase = 'fielding';
+            s.selectedFielder = null;
+          } else if (payload === 'ball') {
+            s.count.balls++;
+            if (s.count.balls >= 4) {
+              this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
+              this.advanceBatter();
+            }
+          } else if (payload === 'strike') {
+            s.count.strikes++;
+            if (s.count.strikes >= 3) {
+              s.count.outs++;
+              this.advanceBatter();
+            }
+          } else if (payload === 'foul') {
+            if (s.count.strikes < 2) s.count.strikes++;
+          } else if (payload === 'hbp') {
+            this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
+            this.advanceBatter();
+          }
+        } else if (action === 'SELECT_FIELDER') {
+          if (s.playPhase === 'fielding') {
+            s.selectedFielder = payload;
+            s.playPhase = 'result';
+          } else {
+            s.assigningPos = payload;
+            this.openAssignSheet(payload);
+            return;
+          }
+        } else if (action === 'FIELD_TAP') {
+          if (s.playPhase === 'fielding') s.tempHitLocation = payload;
+        } else if (action === 'RESOLVE') {
+          if (s.tempHitLocation) {
+            s.hitMarkers.push({ ...s.tempHitLocation, result: payload });
+          }
+
+          if (payload === 'out') {
+            s.count.outs++;
+          } else if (payload === 'single') {
+            this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
+          } else if (payload === 'error') {
+            this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
+          }
+
+          s.tempHitLocation = null;
+          s.playPhase = 'pitch';
+          s.selectedFielder = null;
+          this.advanceBatter();
+        } else if (action === 'ASSIGN_PLAYER') {
+          if (payload.id === null) {
+            s.defense[s.assigningPos] = null;
+          } else {
+            for (let pos of POSITIONS) {
+              if (s.defense[pos] === payload.id) s.defense[pos] = null;
+            }
+            s.defense[s.assigningPos] = payload.id;
+          }
+          this.closeAllSheets();
+        } else if (action === 'SET_BATTER') {
+          s.currentBatterIndex = s.lineup.indexOf(payload);
+          this.closeAllSheets();
+        } else if (action === 'TOGGLE_SPRAY') {
+          s.showSprayChart = !s.showSprayChart;
+        }
+
+        if (s.count.outs >= 3) {
+          s.count = { balls: 0, strikes: 0, outs: 0 };
+          s.bases = { first: null, second: null, third: null };
+          if (s.inning.half === 'top') s.inning.half = 'bottom';
+          else {
+            s.inning.half = 'top';
+            s.inning.number++;
+          }
+        }
+
+        this.render();
+      },
+
+      forceRunnerToFirst(batterId) {
+        const s = this.score;
+        if (s.bases.first && s.bases.second && s.bases.third) {
+          if (s.inning.half === 'top') s.runs.away++;
+          else s.runs.home++;
+        }
+        if (s.bases.first && s.bases.second) s.bases.third = s.bases.second;
+        if (s.bases.first) s.bases.second = s.bases.first;
+        s.bases.first = batterId;
+      },
+
+      advanceBatter() {
+        this.score.count = { balls: 0, strikes: 0, outs: this.score.count.outs };
+        this.score.currentBatterIndex = (this.score.currentBatterIndex + 1) % this.score.lineup.length;
+      },
+
+      pill(label, tone = 'slate') {
+        const colors = {
+          emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+          cyan: 'bg-cyan-50 text-cyan-700 ring-cyan-200',
+          amber: 'bg-amber-50 text-amber-700 ring-amber-200',
+          slate: 'bg-slate-100 text-slate-600 ring-slate-200'
+        };
+        return `<span class="inline-flex items-center rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ring-1 ${colors[tone]}">${label}</span>`;
+      },
+
+      openDjSheet() {
+        let html = '<div class="space-y-3">';
+        ROSTER.forEach(p => {
+          const isPlaying = this.playingSong === p.id;
+          const playingClass = isPlaying ? 'border-emerald-300 bg-emerald-50 shadow-[0_20px_60px_rgba(16,185,129,.16)] scale-[1.01]' : 'border-slate-200 bg-white shadow-sm';
+          const btnClass = isPlaying ? 'bg-emerald-600 text-white shadow-emerald-500/25' : 'bg-slate-100 text-slate-500';
+          const icon = isPlaying ? 'pause' : 'play';
+
+          html += `
+            <div class="flex items-center justify-between rounded-[26px] border p-4 transition-all ${playingClass}">
+              <div class="flex min-w-0 items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 font-black text-white ring-1 ring-white/10">${p.number}</div>
+                <div class="min-w-0">
+                  <p class="line-clamp-1 text-sm font-black text-slate-950">${p.name}</p>
+                  <p class="mt-0.5 truncate text-[10px] font-bold uppercase tracking-wider text-slate-400">${p.walkup?.title || 'Unknown'} • ${p.walkup?.artist || 'Artist'}</p>
+                </div>
+              </div>
+              <button onclick="app.toggleSong(${p.id})" class="btn-press ml-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full shadow-lg ${btnClass}">
+                <i data-lucide="${icon}" class="h-4 w-4 ${!isPlaying ? 'ml-0.5' : ''}"></i>
+              </button>
+            </div>
+          `;
+        });
+        html += '</div>';
+        this.openSheet('Walkup Music', 'Premium DJ Soundboard', html);
+      },
+
+      openAssignSheet(pos) {
+        let html = `
+          <div class="space-y-2 pb-4 text-slate-900">
+            <button onclick="app.scoreAction('ASSIGN_PLAYER', {id: null})" class="btn-press mb-4 w-full rounded-3xl border-2 border-dashed border-slate-200 bg-white py-5 text-xs font-black uppercase tracking-widest text-slate-400">Clear Position</button>
+        `;
+
+        ROSTER.forEach(p => {
+          const isAssigned = this.score.defense[pos] === p.id;
+          const cls = isAssigned ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-500/10 shadow-lg' : 'bg-white border-slate-100 shadow-sm';
+          html += `
+            <button onclick="app.scoreAction('ASSIGN_PLAYER', {id: ${p.id}})" class="btn-press flex w-full items-center justify-between rounded-3xl border p-5 transition-all ${cls}">
+              <span class="font-black">#${p.number} ${p.name}</span>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500">${p.primary}</span>
+            </button>
+          `;
+        });
+
+        html += '</div>';
+        this.openSheet(`Assign ${pos}`, 'Defensive Alignment', html);
+      },
+
+      openLineupSheet() {
+        let html = '<div class="space-y-2 pb-4 text-slate-900">';
+        this.score.lineup.forEach((id, idx) => {
+          const p = this.getPlayer(id);
+          const isCurrent = this.score.currentBatterIndex === idx;
+          const cls = isCurrent ? 'bg-emerald-50 border-emerald-400 shadow-lg ring-2 ring-emerald-500/10' : 'bg-white border-slate-100 shadow-sm';
+          const numCls = isCurrent ? 'text-emerald-700' : 'text-slate-300';
+          html += `
+            <button onclick="app.scoreAction('SET_BATTER', ${id})" class="btn-press flex w-full items-center gap-4 rounded-3xl border p-5 transition-all ${cls}">
+              <span class="text-xs font-black ${numCls}">${idx + 1}.</span>
+              <div class="text-left">
+                <p class="text-sm font-black text-slate-950">#${p.number} ${p.name}</p>
+                <p class="mt-0.5 text-[10px] font-black uppercase tracking-widest text-slate-400">${p.primary}</p>
+              </div>
+            </button>
+          `;
+        });
+        html += '</div>';
+        this.openSheet('Select Batter', 'Live Lineup Control', html);
+      },
+
+      render() {
+        const container = document.getElementById('view-container');
+        let content = '';
+
+        if (this.activeTab === 'dashboard') content = this.renderDashboard();
+        else if (this.activeTab === 'team') content = this.renderTeam();
+        else if (this.activeTab === 'live') content = this.renderLive();
+        else if (this.activeTab === 'guest-hub') content = this.renderGuestHub();
+        else if (this.activeTab === 'recap') content = this.renderRecap();
+        else if (this.activeTab === 'score') content = this.renderScore();
+
+        container.innerHTML = content;
+        this.refreshIcons();
+
+        if (this.activeTab === 'score') {
+          document.getElementById('css-field')?.addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            this.scoreAction('FIELD_TAP', { x, y });
+          });
+        }
+      },
+
+      renderDashboard() {
+        const topBatter = ROSTER[2];
+        const liveMinutes = this.formatTime(this.clockSeconds);
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <section class="dark-card shine relative overflow-hidden rounded-[34px] p-6 text-white">
+              <div class="absolute -right-14 -top-16 h-40 w-40 rounded-full bg-emerald-400/25 blur-3xl"></div>
+              <div class="absolute -bottom-20 left-4 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl"></div>
+              <div class="relative z-10">
+                <div class="mb-5 flex items-center justify-end">
+                  <div class="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-black text-emerald-100 ring-1 ring-white/10">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+                    ${liveMinutes}
+                  </div>
+                </div>
+                <h1 class="max-w-[285px] text-[34px] font-black leading-[.9] tracking-[-0.045em]">Elite Game Day Control.</h1>
+                <p class="mt-4 max-w-[285px] text-sm font-medium leading-relaxed text-slate-300">Score live games, control walkup music, manage the roster, and connect guest players from one premium mobile hub.</p>
+                <button onclick="app.navigate('score')" class="btn-press mt-6 flex w-full items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-emerald-400 to-cyan-300 py-4 font-black text-slate-950 shadow-2xl shadow-emerald-500/25">
+                  <i data-lucide="activity" class="h-5 w-5"></i>
+                  Launch Live Scoring
+                </button>
+              </div>
+            </section>
+
+            <section class="grid grid-cols-3 gap-3">
+              <div class="premium-card rounded-3xl p-4">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Record</p>
+                <p class="mt-2 text-2xl font-black tracking-tight text-slate-950">18-4</p>
+                <p class="text-[10px] font-bold text-emerald-600">Hot streak</p>
+              </div>
+              <div class="premium-card rounded-3xl p-4">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Runs</p>
+                <p class="mt-2 text-2xl font-black tracking-tight text-slate-950">142</p>
+                <p class="text-[10px] font-bold text-slate-500">Season</p>
+              </div>
+              <div class="premium-card rounded-3xl p-4">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Roster</p>
+                <p class="mt-2 text-2xl font-black tracking-tight text-slate-950">${ROSTER.length}</p>
+                <p class="text-[10px] font-bold text-slate-500">Active</p>
+              </div>
+            </section>
+
+            <section class="grid grid-cols-2 gap-3">
+              <button onclick="app.navigate('team')" class="btn-press premium-card rounded-3xl p-4 text-left">
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                  <i data-lucide="users" class="h-5 w-5"></i>
+                </div>
+                <p class="font-black">Roster & DJ</p>
+                <p class="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">Player cards, music, and stats.</p>
+              </button>
+              <button onclick="app.navigate('guest-hub')" class="btn-press premium-card rounded-3xl p-4 text-left">
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700 ring-1 ring-cyan-100">
+                  <i data-lucide="user-plus" class="h-5 w-5"></i>
+                </div>
+                <p class="font-black">Guest Hub</p>
+                <p class="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">Find pickup opportunities.</p>
+              </button>
+            </section>
+
+            <section class="premium-card rounded-[30px] p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Player Spotlight</p>
+                  <h2 class="mt-1 text-xl font-black tracking-tight text-slate-950">${topBatter.name}</h2>
+                </div>
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-lg font-black text-white">#${topBatter.number}</div>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                ${Object.entries(topBatter.stats).map(([k, v]) => `
+                  <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">${k}</p>
+                    <p class="mt-1 text-sm font-black text-slate-950">${v}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+
+            <section class="premium-card rounded-[30px] p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Last Activity</p>
+                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-950">Won 15-3 vs Legacy</h2>
+                </div>
+                <button onclick="app.navigate('recap')" class="btn-press flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white">
+                  <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                </button>
+              </div>
+              <button onclick="app.navigate('recap')" class="btn-press flex w-full items-center justify-between rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 font-black text-emerald-800">W</div>
+                  <div class="text-left">
+                    <p class="font-black text-slate-950">Game Recap Ready</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">March 28, 2026</p>
+                  </div>
+                </div>
+                <i data-lucide="newspaper" class="h-5 w-5 text-slate-400"></i>
+              </button>
+            </section>
+          </div>
+        `;
+      },
+
+      renderTeam() {
+        let html = `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Elite Roster</p>
+                <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">12U Lineup</h2>
+              </div>
+              <button class="btn-press flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-900/20">
+                <i data-lucide="plus" class="h-5 w-5"></i>
+              </button>
+            </div>
+
+            <div class="premium-card rounded-[30px] p-4">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Players</p>
+                  <p class="mt-1 text-xl font-black">${ROSTER.length}</p>
+                </div>
+                <div class="rounded-2xl bg-emerald-50 p-3 text-center ring-1 ring-emerald-100">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-emerald-600">Active DJ</p>
+                  <p class="mt-1 text-xl font-black">${this.playingSong ? 'On' : 'Off'}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Mode</p>
+                  <p class="mt-1 text-xl font-black">Pro</p>
+                </div>
+              </div>
+            </div>
+        `;
+
+        ROSTER.forEach(p => {
+          const isPlaying = this.playingSong === p.id;
+          const ring = isPlaying ? 'border-emerald-300 shadow-[0_24px_70px_rgba(16,185,129,.18)]' : 'border-slate-200 shadow-sm';
+          const btnClass = isPlaying ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/25 scale-105' : 'bg-slate-100 text-slate-500';
+          const icon = isPlaying ? 'pause' : 'play';
+
+          html += `
+            <div class="premium-card overflow-hidden rounded-[32px] border transition-all ${ring}">
+              <div class="relative overflow-hidden bg-slate-950 p-4 text-white">
+                <div class="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-emerald-400/20 blur-2xl"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                  <div class="flex min-w-0 items-center gap-4">
+                    <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-lg font-black ring-1 ring-white/10">#${p.number}</div>
+                    <div class="min-w-0">
+                      <p class="line-clamp-1 font-black">${p.name}</p>
+                      <p class="mt-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-300">${p.primary}</p>
+                    </div>
+                  </div>
+                  <i data-lucide="star" class="h-4 w-4 shrink-0 text-amber-300"></i>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 border-b border-slate-100 bg-white p-3">
+                ${Object.entries(p.stats).map(([k, v]) => `
+                  <div class="rounded-2xl bg-slate-50 p-2 text-center ring-1 ring-slate-100">
+                    <p class="text-[8px] font-black uppercase tracking-widest text-slate-400">${k}</p>
+                    <p class="mt-1 text-xs font-black text-slate-950">${v}</p>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="flex items-center justify-between gap-3 bg-slate-50 p-4">
+                <div class="flex min-w-0 items-center gap-3">
+                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                    <i data-lucide="music-2" class="h-4 w-4"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-xs font-black text-slate-900">${p.walkup?.title || 'Track'}</p>
+                    <p class="mt-0.5 truncate text-[10px] font-medium text-slate-400">${p.walkup?.artist || 'Artist'}</p>
+                  </div>
+                </div>
+                <button onclick="app.toggleSong(${p.id})" class="btn-press flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-all ${btnClass}">
+                  <i data-lucide="${icon}" class="h-4 w-4 ${!isPlaying ? 'ml-0.5' : ''}"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        return html + '</div>';
+      },
+
+      renderLive() {
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="px-1">
+              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Broadcast</p>
+              <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Live Games</h2>
+            </div>
+
+            <section class="dark-card overflow-hidden rounded-[34px] text-white">
+              <div class="relative aspect-video overflow-hidden bg-slate-950">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(16,185,129,.30),transparent_30%),linear-gradient(145deg,#0f172a,#020617)]"></div>
+                <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950 to-transparent"></div>
+                <div class="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-full bg-red-600 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span> Live
+                </div>
+                <div class="absolute right-4 top-4 z-10 rounded-full bg-black/35 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-xl ring-1 ring-white/10">142 viewers</div>
+                <button class="btn-press absolute left-1/2 top-1/2 z-10 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-xl ring-1 ring-white/20">
+                  <i data-lucide="play" class="ml-1 h-8 w-8"></i>
+                </button>
+              </div>
+              <div class="p-5">
+                <div class="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h3 class="text-xl font-black tracking-tight">Texas Rattlers vs Mudcats</h3>
+                    <p class="mt-1 text-xs font-medium text-slate-400">USSSA State Championship</p>
+                  </div>
+                  ${this.pill('Top 4th', 'emerald')}
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="rounded-2xl bg-white/8 p-3 text-center ring-1 ring-white/10">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Home</p>
+                    <p class="mt-1 text-lg font-black">3</p>
+                  </div>
+                  <div class="rounded-2xl bg-white/8 p-3 text-center ring-1 ring-white/10">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Away</p>
+                    <p class="mt-1 text-lg font-black">7</p>
+                  </div>
+                  <div class="rounded-2xl bg-white/8 p-3 text-center ring-1 ring-white/10">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Outs</p>
+                    <p class="mt-1 text-lg font-black">1</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="premium-card rounded-[30px] p-5">
+              <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                  <i data-lucide="radio-tower" class="h-5 w-5"></i>
+                </div>
+                <div>
+                  <h3 class="font-black">Stream Control</h3>
+                  <p class="text-xs font-medium text-slate-500">Premium broadcast card ready for video embedding.</p>
+                </div>
+              </div>
+              <button onclick="app.navigate('score')" class="btn-press w-full rounded-3xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl shadow-slate-900/20">Open Score Control</button>
+            </section>
+          </div>
+        `;
+      },
+
+      renderGuestHub() {
+        let html = `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="px-1">
+              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Network</p>
+              <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Guest Hub</h2>
+            </div>
+
+            <div class="premium-card rounded-[28px] p-3">
+              <div class="relative">
+                <i data-lucide="search" class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" placeholder="Search pickup games..." class="w-full rounded-3xl border border-slate-200 bg-slate-50 py-4 pl-12 pr-4 text-sm font-bold text-slate-900 outline-none ring-0 transition focus:border-emerald-300 focus:bg-white focus:shadow-lg" />
+              </div>
+            </div>
+        `;
+
+        this.guestHub.opportunities.forEach(opp => {
+          const btnCls = opp.applied ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-950 text-white shadow-xl shadow-slate-900/20';
+          const btnText = opp.applied ? 'Applied' : 'Message Coach';
+          html += `
+            <article class="premium-card rounded-[32px] p-5">
+              <div class="mb-4 flex flex-wrap items-center gap-2">
+                ${this.pill(opp.ageGroup, 'slate')}
+                ${opp.featured ? this.pill('Featured', 'emerald') : ''}
+                ${opp.positions.map(pos => this.pill(pos, 'cyan')).join('')}
+              </div>
+              <h3 class="line-clamp-1 text-xl font-black tracking-tight">${opp.teamName}</h3>
+              <div class="mt-2 flex items-center gap-2 text-xs font-bold text-slate-500">
+                <i data-lucide="map-pin" class="h-4 w-4 text-emerald-600"></i>
+                <span>${opp.location}</span>
+              </div>
+              <div class="mt-2 flex items-center gap-2 text-xs font-bold text-slate-500">
+                <i data-lucide="calendar-days" class="h-4 w-4 text-emerald-600"></i>
+                <span>${opp.date}</span>
+              </div>
+              <p class="mt-4 text-sm font-medium leading-relaxed text-slate-600">${opp.description}</p>
+              <div class="mt-5 flex items-center justify-between gap-3">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Posted by ${opp.postedBy}</p>
+                <button onclick="app.applyForGuest(${opp.id})" ${opp.applied ? 'disabled' : ''} class="btn-press rounded-2xl px-5 py-3 text-xs font-black transition-all ${btnCls}">${btnText}</button>
+              </div>
+            </article>
+          `;
+        });
+
+        return html + '</div>';
+      },
+
+      renderRecap() {
+        return `
+          <div class="animate-in premium-card flex min-h-full flex-col overflow-hidden rounded-[34px] text-slate-950">
+            <div class="relative overflow-hidden bg-slate-950 p-6 text-center text-white">
+              <div class="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-emerald-400/25 blur-3xl"></div>
+              <div class="absolute -left-16 bottom-0 h-36 w-36 rounded-full bg-cyan-400/15 blur-3xl"></div>
+              <button onclick="app.navigate('dashboard')" class="btn-press absolute left-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+              </button>
+              <p class="mb-7 mt-1 text-[10px] font-black uppercase tracking-[.22em] text-emerald-300">Sat Mar 28, 7:00 PM ET</p>
+              <div class="relative z-10 flex items-center justify-center gap-8">
+                <div class="flex flex-col items-center">
+                  <p class="text-5xl font-black tracking-[-.05em]">15</p>
+                  <p class="mt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">CNSC</p>
+                </div>
+                <div class="h-14 w-px bg-white/20"></div>
+                <div class="flex flex-col items-center">
+                  <p class="text-5xl font-black tracking-[-.05em]">3</p>
+                  <p class="mt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">DMND</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
+              <div class="mb-5 flex flex-wrap gap-2">
+                ${this.pill('Game Recap', 'emerald')}
+                ${this.pill('Final', 'slate')}
+              </div>
+              <h2 class="text-2xl font-black leading-tight tracking-[-.04em]">Ayden collected three hits as Canes Central Alexander 11U defeat Diamond Legacy.</h2>
+              <p class="mt-3 text-[10px] font-black uppercase tracking-widest text-slate-400">March 28, 2026 vs Diamond Legacy 11U Red</p>
+              <div class="mt-6 space-y-4 text-sm font-medium leading-relaxed text-slate-600">
+                <p>Ayden collected three hits in four at bats as Canes Central Alexander 11U defeated Diamond Legacy 11U Red 15 to 3 on Saturday.</p>
+                <p>Canes Central Alexander 11U opened the scoring in the top of the first thanks to two walks, then kept pressure on the defense with aggressive base running and timely contact.</p>
+              </div>
+
+              <div class="mt-6 grid grid-cols-3 gap-2">
+                <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Hits</p>
+                  <p class="mt-1 text-xl font-black">12</p>
+                </div>
+                <div class="rounded-2xl bg-emerald-50 p-3 text-center ring-1 ring-emerald-100">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-emerald-600">Runs</p>
+                  <p class="mt-1 text-xl font-black">15</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">RBI</p>
+                  <p class="mt-1 text-xl font-black">9</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      renderScore() {
+        const s = this.score;
+        const currentBatter = this.getPlayer(s.lineup[s.currentBatterIndex]) || ROSTER[0];
+        const inningStr = `${s.inning.half === 'top' ? 'Top' : 'Bot'} ${s.inning.number}`;
+        const clockIconColor = this.clockRunning ? 'text-emerald-300' : 'text-amber-300';
+        const clockStatusClass = this.clockRunning ? 'text-emerald-300 animate-pulse' : 'text-amber-300';
+        const clockStatusText = this.clockRunning ? 'Live' : 'Paused';
+        const timeStr = this.formatTime(this.clockSeconds);
+
+        let fieldersHtml = '';
+        const posCoords = {
+          P: { l: '50%', t: '59%' }, C: { l: '50%', t: '94%' },
+          '1B': { l: '78%', t: '48%' }, '2B': { l: '62%', t: '30%' },
+          '3B': { l: '22%', t: '48%' }, SS: { l: '38%', t: '30%' },
+          LF: { l: '18%', t: '15%' }, CF: { l: '50%', t: '10%' }, RF: { l: '82%', t: '15%' }
         };
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', () => {
-            app.startClock();
-            app.render();
+        POSITIONS.forEach(pos => {
+          const assignedId = s.defense[pos];
+          const player = this.getPlayer(assignedId);
+          const isSelected = s.selectedFielder === pos;
+          const isFielding = s.playPhase === 'fielding';
+
+          let btnClass = 'bg-slate-950 border-white/20 text-white opacity-95';
+          if (isSelected) btnClass = 'bg-amber-300 border-white scale-125 z-40 text-amber-950 shadow-amber-500/40';
+          else if (isFielding) btnClass = 'bg-emerald-300 border-white animate-pulse text-emerald-950 shadow-emerald-500/30';
+
+          fieldersHtml += `
+            <div class="absolute z-30 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center" style="left: ${posCoords[pos].l}; top: ${posCoords[pos].t}">
+              <button onclick="event.stopPropagation(); app.scoreAction('SELECT_FIELDER', '${pos}')" class="h-8 w-8 rounded-full border-2 text-[9px] font-black shadow-xl transition-all ${btnClass}">${pos}</button>
+              ${player && !isFielding ? `<div class="mt-0.5 whitespace-nowrap rounded-full bg-black/60 px-1.5 py-0.5 text-[8px] font-bold text-white backdrop-blur-sm">${player.name.split(' ')[1]}</div>` : ''}
+            </div>
+          `;
         });
-    </script>
+
+        let markersHtml = '';
+        if (s.showSprayChart) {
+          s.hitMarkers.forEach(m => {
+            const bg = m.result === 'out' ? 'bg-red-500' : 'bg-emerald-400';
+            markersHtml += `<div class="pointer-events-none absolute z-10 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white shadow-lg ${bg}" style="left: ${m.x}%; top: ${m.y}%"></div>`;
+          });
+        }
+        if (s.tempHitLocation) {
+          markersHtml += `<div class="absolute z-20 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-amber-400 shadow-xl" style="left: ${s.tempHitLocation.x}%; top: ${s.tempHitLocation.y}%"><div class="h-2 w-2 rounded-full bg-white animate-ping"></div></div>`;
+        }
+
+        let controlsHtml = '';
+        const btnBase = 'btn-press w-full rounded-2xl border py-4 text-[11px] font-black uppercase tracking-widest transition-all';
+        const tBlue = 'bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-100';
+        const tRed = 'bg-red-50 text-red-700 border-red-200 ring-1 ring-red-100';
+        const tSlate = 'bg-slate-100 text-slate-600 border-slate-200';
+        const tEmerald = 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/25 border-emerald-500';
+        const tAmber = 'bg-amber-500 text-white shadow-xl shadow-amber-500/25 border-amber-400';
+
+        if (s.playPhase === 'pitch') {
+          controlsHtml = `
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <button onclick="app.scoreAction('PITCH', 'ball')" class="${btnBase} ${tBlue}">Ball</button>
+                <button onclick="app.scoreAction('PITCH', 'strike')" class="${btnBase} ${tRed}">Strike</button>
+                <button onclick="app.scoreAction('PITCH', 'foul')" class="${btnBase} ${tSlate}">Foul</button>
+                <button onclick="app.scoreAction('PITCH', 'in_play')" class="${btnBase} ${tEmerald}">In Play</button>
+                <div class="col-span-2"><button onclick="app.scoreAction('PITCH', 'hbp')" class="${btnBase} ${tAmber}">Hit By Pitch</button></div>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-100 pt-4 text-xs font-black uppercase tracking-widest text-slate-400">
+                <span>B: ${s.count.balls}</span>
+                <span>S: ${s.count.strikes}</span>
+                <span class="text-slate-950">Outs: ${s.count.outs}</span>
+              </div>
+            </div>
+          `;
+        } else if (s.playPhase === 'fielding') {
+          controlsHtml = `
+            <div class="py-6 text-center">
+              <div class="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-100 px-6 py-3 font-black text-emerald-800 shadow-sm animate-bounce">
+                <i data-lucide="target" class="h-5 w-5"></i> Tap Fielder & Hit Location
+              </div>
+            </div>
+          `;
+        } else {
+          controlsHtml = `
+            <div class="space-y-4">
+              <p class="text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Play from ${s.selectedFielder}</p>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="app.scoreAction('RESOLVE', 'out')" class="${btnBase} ${tRed}">Out</button>
+                <button onclick="app.scoreAction('RESOLVE', 'single')" class="${btnBase} ${tEmerald}">Hit</button>
+                <button onclick="app.scoreAction('RESOLVE', 'error')" class="${btnBase} ${tAmber}">Error</button>
+              </div>
+            </div>
+          `;
+        }
+
+        const b1 = s.bases.first ? 'bg-emerald-300 ring-4 ring-emerald-400/35 z-10 scale-125' : 'bg-white';
+        const b2 = s.bases.second ? 'bg-emerald-300 ring-4 ring-emerald-400/35 z-10 scale-125' : 'bg-white';
+        const b3 = s.bases.third ? 'bg-emerald-300 ring-4 ring-emerald-400/35 z-10 scale-125' : 'bg-white';
+
+        return `
+          <div class="animate-in flex h-full min-h-full flex-col overflow-hidden rounded-[34px] border border-slate-200 bg-white text-slate-950 shadow-2xl">
+            <div class="relative shrink-0 overflow-hidden bg-slate-950 p-4 text-white">
+              <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,.24),transparent_42%)]"></div>
+              <div class="relative z-10 flex items-center justify-between">
+                <button onclick="app.navigate('dashboard')" class="btn-press flex h-10 w-10 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/10">
+                  <i data-lucide="arrow-left" class="h-5 w-5"></i>
+                </button>
+
+                <div class="text-center">
+                  <p class="mb-0.5 text-[10px] font-black uppercase tracking-[.22em] text-emerald-300">${inningStr}</p>
+                  <p class="text-2xl font-black tracking-[-.04em]">${s.runs.away} — ${s.runs.home}</p>
+                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-500">Away / Home</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <div class="flex flex-col items-end">
+                    <button onclick="app.toggleClock()" class="flex items-center gap-1 font-mono text-xs font-black text-white">
+                      <i data-lucide="clock" id="clock-icon" class="h-3 w-3 ${clockIconColor}"></i>
+                      <span id="clock-time">${timeStr}</span>
+                    </button>
+                    <div id="clock-status" class="mt-0.5 text-[8px] font-black uppercase ${clockStatusClass}">${clockStatusText}</div>
+                  </div>
+                  <button onclick="app.openDjSheet()" class="btn-press flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
+                    <i data-lucide="music-2" class="h-[18px] w-[18px]"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-1 flex-col gap-4 overflow-y-auto bg-slate-100 p-4 no-scrollbar">
+              <div class="premium-card shrink-0 rounded-[28px] p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="mb-0.5 text-[10px] font-black uppercase tracking-widest text-slate-400">Next Batter</p>
+                    <p class="line-clamp-1 text-xl font-black tracking-tight text-slate-950">#${currentBatter.number} ${currentBatter.name}</p>
+                  </div>
+                  <button onclick="app.openLineupSheet()" class="btn-press rounded-2xl bg-emerald-50 px-4 py-2 text-xs font-black uppercase tracking-widest text-emerald-700 ring-1 ring-emerald-100">Lineup</button>
+                </div>
+              </div>
+
+              <div class="mx-auto flex w-full max-w-[370px] flex-1 flex-col justify-center">
+                <div id="css-field" class="diamond-field relative aspect-square w-full cursor-crosshair overflow-hidden rounded-[34px] border border-white/60 shadow-[inset_0_0_30px_rgba(0,0,0,.18),0_25px_70px_rgba(15,23,42,.18)]">
+                  <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,transparent_0_32%,rgba(255,255,255,.08)_32.5%,transparent_33%),radial-gradient(circle_at_50%_52%,rgba(255,255,255,.12),transparent_9%)]"></div>
+
+                  <div class="pointer-events-none absolute bottom-[16%] left-1/2 h-[152%] w-0.5 origin-bottom rotate-45 bg-white/70"></div>
+                  <div class="pointer-events-none absolute bottom-[16%] left-1/2 h-[152%] w-0.5 origin-bottom -rotate-45 bg-white/70"></div>
+
+                  <div class="pointer-events-none absolute left-1/2 top-[54%] aspect-square w-[43%] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xl border-2 border-[#8B552F] bg-[#c58755] shadow-lg"></div>
+                  <div class="pointer-events-none absolute left-1/2 top-[54%] aspect-square w-[29%] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded bg-[#2f8f55] shadow-[inset_0_0_14px_rgba(0,0,0,.18)]"></div>
+
+                  <div class="pointer-events-none absolute left-1/2 top-[84%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c58755]"></div>
+                  <div class="pointer-events-none absolute left-1/2 top-[54%] h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#8B552F] bg-[#c58755] shadow-sm"></div>
+                  <div class="pointer-events-none absolute left-1/2 top-[54%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"></div>
+
+                  <div class="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-md transition-all duration-300 ${b2}" style="left: 50%; top: 24%"></div>
+                  <div class="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-md transition-all duration-300 ${b1}" style="left: 80%; top: 54%"></div>
+                  <div class="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-md transition-all duration-300 ${b3}" style="left: 20%; top: 54%"></div>
+                  <div class="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 bg-white shadow-md" style="left: 50%; top: 84%; clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%)"></div>
+
+                  <button onclick="event.stopPropagation(); app.scoreAction('TOGGLE_SPRAY')" class="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-xl ring-1 ring-white/10 transition hover:bg-black/70">
+                    <i data-lucide="map" class="h-[15px] w-[15px] ${s.showSprayChart ? 'text-emerald-300' : 'text-white opacity-50'}"></i>
+                  </button>
+
+                  ${markersHtml}
+                  ${fieldersHtml}
+                </div>
+              </div>
+            </div>
+
+            <div class="shrink-0 border-t border-slate-200 bg-white p-4 shadow-[0_-12px_30px_rgba(15,23,42,.05)]">
+              ${controlsHtml}
+            </div>
+          </div>
+        `;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      app.startClock();
+      app.render();
+      app.refreshIcons();
+    });
+  </script>
 </body>
 </html>
