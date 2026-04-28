@@ -239,18 +239,21 @@
 
     <!-- BOTTOM DOCK -->
     <div class="glass-dock z-40 shrink-0 border-t border-white/70 px-3 pt-2 safe-bottom" id="dock-container">
-      <div class="grid grid-cols-4 gap-1 rounded-[28px] bg-white/70 p-1 ring-1 ring-slate-200/80">
+      <div class="grid grid-cols-5 gap-1 rounded-[28px] bg-white/70 p-1 ring-1 ring-slate-200/80">
         <button onclick="app.navigate('dashboard')" id="nav-dashboard" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-emerald-700 bg-emerald-50 shadow-sm">
-          <i data-lucide="home" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Home</span>
+          <i data-lucide="home" class="mb-1 h-[20px] w-[20px]"></i><span class="text-[9px] font-black">Home</span>
         </button>
         <button onclick="app.navigate('team')" id="nav-team" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
-          <i data-lucide="users" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Team</span>
+          <i data-lucide="users" class="mb-1 h-[20px] w-[20px]"></i><span class="text-[9px] font-black">Team</span>
         </button>
-        <button onclick="app.navigate('live')" id="nav-live" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
-          <i data-lucide="radio" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Live</span>
+        <button onclick="app.navigate('score')" id="nav-score" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
+          <i data-lucide="activity" class="mb-1 h-[20px] w-[20px]"></i><span class="text-[9px] font-black">Score</span>
         </button>
-        <button onclick="app.navigate('guest-hub')" id="nav-guest-hub" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
-          <i data-lucide="user-plus" class="mb-1 h-[21px] w-[21px]"></i><span class="text-[10px] font-black">Guests</span>
+        <button onclick="app.navigate('schedule')" id="nav-schedule" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
+          <i data-lucide="calendar-days" class="mb-1 h-[20px] w-[20px]"></i><span class="text-[9px] font-black">Schedule</span>
+        </button>
+        <button onclick="app.navigate('more')" id="nav-more" class="nav-btn btn-press flex flex-col items-center rounded-2xl py-2 transition-all text-slate-400">
+          <i data-lucide="grid-2x2" class="mb-1 h-[20px] w-[20px]"></i><span class="text-[9px] font-black">More</span>
         </button>
       </div>
     </div>
@@ -276,7 +279,7 @@
   </div>
 
   <script>
-    const ROSTER = [
+    const DEFAULT_ROSTER = [
       { id: 1, name: 'Jackson Smith', number: '2', primary: 'P/SS', stats: { AVG: '.345', OPS: '1.012', ERA: '3.12' }, walkup: { title: 'Enter Sandman', artist: 'Metallica' } },
       { id: 2, name: 'Leo Martinez', number: '5', primary: 'C/3B', stats: { AVG: '.280', OPS: '.850', CS: '40%' }, walkup: { title: 'HUMBLE.', artist: 'Kendrick Lamar' } },
       { id: 3, name: 'Carter Davis', number: '12', primary: '1B/P', stats: { AVG: '.410', OPS: '1.205', ERA: '2.45' }, walkup: { title: 'Kashmir', artist: 'Led Zeppelin' } },
@@ -288,7 +291,77 @@
       { id: 9, name: 'Aiden Young', number: '11', primary: 'SS', stats: { AVG: '.350', OPS: '.950', SB: '15' }, walkup: { title: 'Lose Yourself', artist: 'Eminem' } }
     ];
 
+    let ROSTER = loadStoredArray('diamondlink_roster', DEFAULT_ROSTER);
+
     const POSITIONS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+
+    const DEFAULT_TEAMS = [
+      { id: 101, name: 'DiamondLink Elite 12U', ageGroup: '12U', city: 'Home Field', coach: 'Coach JD', record: '0-0', status: 'Active' }
+    ];
+
+    const DEFAULT_SCHEDULE = [
+      { id: 201, type: 'Game', title: 'DiamondLink Elite vs Legacy Red', date: 'Apr 30, 2026', time: '6:30 PM', location: 'Home Field', status: 'Scheduled', rsvpYes: 9, rsvpNo: 1, notes: 'Arrive 45 minutes early for warmups.' },
+      { id: 202, type: 'Practice', title: 'Defense + Situational Hitting', date: 'May 2, 2026', time: '5:30 PM', location: 'Cage 3 / Field 2', status: 'Practice', rsvpYes: 8, rsvpNo: 0, notes: 'Bring turf shoes and helmet.' }
+    ];
+
+    const DEFAULT_MESSAGES = [
+      { id: 301, author: 'Coach JD', text: 'Welcome to DiamondLink Elite. Schedule, scorekeeping, DJ, live updates, and guest opportunities will live here.', time: 'Today • 9:00 AM', tone: 'coach' },
+      { id: 302, author: 'Team Parent', text: 'Please update RSVP for this week so we can plan pitching and lineup.', time: 'Today • 9:12 AM', tone: 'parent' }
+    ];
+
+    const DEFAULT_FANS = [
+      { id: 401, name: 'Grandma Linda', role: 'Family', access: 'Live + Recaps' },
+      { id: 402, name: 'Coach Mike', role: 'Staff', access: 'Scorekeeping' }
+    ];
+
+    const DEFAULT_MEDIA = [
+      { id: 501, title: 'Jackson RBI single', player: 'Jackson Smith', game: 'vs Legacy Red', type: 'Clip', status: 'Ready' },
+      { id: 502, title: 'Carter pitching sequence', player: 'Carter Davis', game: 'vs Mudcats', type: 'Highlight', status: 'Processing' }
+    ];
+
+    function loadStoredArray(key, fallback) {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (error) {
+        console.warn(`Could not load ${key}:`, error);
+      }
+      return fallback.map(item => ({ ...item }));
+    }
+
+    function saveStoredArray(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (error) {
+        console.warn(`Could not save ${key}:`, error);
+      }
+    }
+
+    function loadTeams() {
+      try {
+        const saved = localStorage.getItem('diamondlink_teams');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (error) {
+        console.warn('Could not load saved teams:', error);
+      }
+      return DEFAULT_TEAMS.map(team => ({ ...team }));
+    }
+
+    function loadActiveTeamId() {
+      try {
+        const saved = localStorage.getItem('diamondlink_active_team');
+        if (saved) return Number(saved);
+      } catch (error) {
+        console.warn('Could not load active team:', error);
+      }
+      return DEFAULT_TEAMS[0].id;
+    }
 
     window.app = {
       activeTab: 'dashboard',
@@ -296,6 +369,14 @@
       clockTimer: null,
       clockSeconds: 0,
       clockRunning: true,
+      teams: loadTeams(),
+      activeTeamId: loadActiveTeamId(),
+      schedule: loadStoredArray('diamondlink_schedule', DEFAULT_SCHEDULE),
+      messages: loadStoredArray('diamondlink_messages', DEFAULT_MESSAGES),
+      fans: loadStoredArray('diamondlink_fans', DEFAULT_FANS),
+      media: loadStoredArray('diamondlink_media', DEFAULT_MEDIA),
+      scorebook: loadStoredArray('diamondlink_scorebook', []),
+
 
       guestHub: {
         search: '',
@@ -324,6 +405,379 @@
 
       getPlayer(id) {
         return ROSTER.find(p => p.id === id) || null;
+      },
+
+      escape(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[char]));
+      },
+
+      getActiveTeam() {
+        return this.teams.find(team => Number(team.id) === Number(this.activeTeamId)) || this.teams[0] || null;
+      },
+
+      saveTeams() {
+        try {
+          localStorage.setItem('diamondlink_teams', JSON.stringify(this.teams));
+          if (this.activeTeamId) localStorage.setItem('diamondlink_active_team', String(this.activeTeamId));
+        } catch (error) {
+          console.warn('Could not save teams:', error);
+        }
+      },
+
+
+      saveRoster() {
+        saveStoredArray('diamondlink_roster', ROSTER);
+      },
+
+      saveSchedule() {
+        saveStoredArray('diamondlink_schedule', this.schedule);
+      },
+
+      saveMessages() {
+        saveStoredArray('diamondlink_messages', this.messages);
+      },
+
+      saveFans() {
+        saveStoredArray('diamondlink_fans', this.fans);
+      },
+
+      saveMedia() {
+        saveStoredArray('diamondlink_media', this.media);
+      },
+
+      saveScorebook() {
+        saveStoredArray('diamondlink_scorebook', this.scorebook);
+      },
+
+      logPlay(text, tag = 'Play') {
+        const entry = {
+          id: Date.now() + Math.floor(Math.random() * 1000),
+          inning: `${this.score.inning.half === 'top' ? 'Top' : 'Bot'} ${this.score.inning.number}`,
+          text,
+          tag,
+          time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        };
+        this.scorebook.unshift(entry);
+        this.scorebook = this.scorebook.slice(0, 60);
+        this.saveScorebook();
+      },
+
+      openAddPlayerSheet() {
+        const html = `
+          <form onsubmit="event.preventDefault(); app.addPlayerFromSheet();" class="space-y-4 pb-4">
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Player Name</label>
+              <input id="new-player-name" type="text" required placeholder="Example: Kai Hicks" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+                <label class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">Number</label>
+                <input id="new-player-number" type="text" placeholder="22" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              </div>
+              <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+                <label class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">Positions</label>
+                <input id="new-player-primary" type="text" placeholder="P/SS" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              </div>
+            </div>
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Walkup Song</label>
+              <input id="new-player-song" type="text" placeholder="Song title" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              <input id="new-player-artist" type="text" placeholder="Artist" class="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+            <button type="submit" class="btn-press flex w-full items-center justify-center gap-2 rounded-[24px] bg-slate-950 px-5 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/25">
+              <i data-lucide="user-plus" class="h-5 w-5"></i> Add Player
+            </button>
+          </form>
+        `;
+        this.openSheet('Add Player', 'Roster Management', html);
+        setTimeout(() => document.getElementById('new-player-name')?.focus(), 100);
+      },
+
+      addPlayerFromSheet() {
+        const name = document.getElementById('new-player-name')?.value.trim();
+        if (!name) {
+          alert('Please enter a player name.');
+          return;
+        }
+        const number = document.getElementById('new-player-number')?.value.trim() || String(ROSTER.length + 1);
+        const primary = document.getElementById('new-player-primary')?.value.trim() || 'UTIL';
+        const title = document.getElementById('new-player-song')?.value.trim() || 'Walkup Track';
+        const artist = document.getElementById('new-player-artist')?.value.trim() || 'Artist';
+        const newPlayer = {
+          id: Date.now(),
+          name,
+          number,
+          primary,
+          stats: { AVG: '.000', OPS: '.000', ERA: '--' },
+          walkup: { title, artist }
+        };
+        ROSTER.push(newPlayer);
+        this.score.lineup.push(newPlayer.id);
+        this.saveRoster();
+        this.closeAllSheets();
+        this.navigate('team');
+      },
+
+      deletePlayer(id) {
+        if (ROSTER.length <= 1) {
+          alert('You need at least one player on the roster.');
+          return;
+        }
+        const player = this.getPlayer(id);
+        if (!player) return;
+        if (!confirm(`Remove ${player.name} from the roster?`)) return;
+        ROSTER = ROSTER.filter(item => Number(item.id) !== Number(id));
+        this.score.lineup = this.score.lineup.filter(item => Number(item) !== Number(id));
+        for (let pos of POSITIONS) {
+          if (Number(this.score.defense[pos]) === Number(id)) this.score.defense[pos] = null;
+        }
+        this.saveRoster();
+        this.render();
+      },
+
+      openAddEventSheet() {
+        const html = `
+          <form onsubmit="event.preventDefault(); app.addEventFromSheet();" class="space-y-4 pb-4">
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Event Title</label>
+              <input id="new-event-title" type="text" required placeholder="Example: DiamondLink vs Mudcats" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+                <label class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">Type</label>
+                <select id="new-event-type" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10">
+                  <option>Game</option>
+                  <option>Practice</option>
+                  <option>Tournament</option>
+                  <option>Team Event</option>
+                </select>
+              </div>
+              <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+                <label class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">Status</label>
+                <select id="new-event-status" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10">
+                  <option>Scheduled</option>
+                  <option>Practice</option>
+                  <option>Confirmed</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="new-event-date" type="text" placeholder="May 5, 2026" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              <input id="new-event-time" type="text" placeholder="6:30 PM" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+            <input id="new-event-location" type="text" placeholder="Field / address" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            <textarea id="new-event-notes" placeholder="Arrival time, uniform, notes..." class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10"></textarea>
+            <button type="submit" class="btn-press flex w-full items-center justify-center gap-2 rounded-[24px] bg-slate-950 px-5 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/25">
+              <i data-lucide="calendar-plus" class="h-5 w-5"></i> Add Event
+            </button>
+          </form>
+        `;
+        this.openSheet('Add Event', 'Schedule + RSVP', html);
+      },
+
+      addEventFromSheet() {
+        const title = document.getElementById('new-event-title')?.value.trim();
+        if (!title) {
+          alert('Please enter an event title.');
+          return;
+        }
+        const event = {
+          id: Date.now(),
+          type: document.getElementById('new-event-type')?.value || 'Game',
+          title,
+          date: document.getElementById('new-event-date')?.value.trim() || 'TBD',
+          time: document.getElementById('new-event-time')?.value.trim() || 'TBD',
+          location: document.getElementById('new-event-location')?.value.trim() || 'TBD',
+          status: document.getElementById('new-event-status')?.value || 'Scheduled',
+          rsvpYes: 0,
+          rsvpNo: 0,
+          notes: document.getElementById('new-event-notes')?.value.trim() || ''
+        };
+        this.schedule.unshift(event);
+        this.saveSchedule();
+        this.closeAllSheets();
+        this.navigate('schedule');
+      },
+
+      toggleRsvp(id, response) {
+        const event = this.schedule.find(item => Number(item.id) === Number(id));
+        if (!event) return;
+        if (response === 'yes') event.rsvpYes = (Number(event.rsvpYes) || 0) + 1;
+        if (response === 'no') event.rsvpNo = (Number(event.rsvpNo) || 0) + 1;
+        this.saveSchedule();
+        this.render();
+      },
+
+      deleteEvent(id) {
+        this.schedule = this.schedule.filter(item => Number(item.id) !== Number(id));
+        this.saveSchedule();
+        this.render();
+      },
+
+      openMessageSheet() {
+        const html = `
+          <form onsubmit="event.preventDefault(); app.sendMessageFromSheet();" class="space-y-4 pb-4">
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Post Update</label>
+              <textarea id="new-message-text" required placeholder="Message the team..." class="mt-2 min-h-[140px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10"></textarea>
+            </div>
+            <button type="submit" class="btn-press flex w-full items-center justify-center gap-2 rounded-[24px] bg-slate-950 px-5 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/25">
+              <i data-lucide="send" class="h-5 w-5"></i> Send Message
+            </button>
+          </form>
+        `;
+        this.openSheet('Team Message', 'Coach + Family Chat', html);
+      },
+
+      sendMessageFromSheet() {
+        const text = document.getElementById('new-message-text')?.value.trim();
+        if (!text) return;
+        this.messages.unshift({
+          id: Date.now(),
+          author: 'Coach JD',
+          text,
+          time: 'Just now',
+          tone: 'coach'
+        });
+        this.saveMessages();
+        this.closeAllSheets();
+        this.navigate('messages');
+      },
+
+      openInviteFanSheet() {
+        const html = `
+          <form onsubmit="event.preventDefault(); app.addFanFromSheet();" class="space-y-4 pb-4">
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Name</label>
+              <input id="new-fan-name" type="text" required placeholder="Family member or staff name" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="new-fan-role" type="text" placeholder="Family / Staff" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              <select id="new-fan-access" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10">
+                <option>Live + Recaps</option>
+                <option>Scorekeeping</option>
+                <option>Family View</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-press flex w-full items-center justify-center gap-2 rounded-[24px] bg-slate-950 px-5 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/25">
+              <i data-lucide="mail-plus" class="h-5 w-5"></i> Add Fan / Staff
+            </button>
+          </form>
+        `;
+        this.openSheet('Invite Fan', 'Family + Staff Access', html);
+      },
+
+      addFanFromSheet() {
+        const name = document.getElementById('new-fan-name')?.value.trim();
+        if (!name) return;
+        this.fans.unshift({
+          id: Date.now(),
+          name,
+          role: document.getElementById('new-fan-role')?.value.trim() || 'Family',
+          access: document.getElementById('new-fan-access')?.value || 'Live + Recaps'
+        });
+        this.saveFans();
+        this.closeAllSheets();
+        this.navigate('fans');
+      },
+
+      openAddTeamSheet() {
+        const html = `
+          <form onsubmit="event.preventDefault(); app.addTeamFromSheet();" class="space-y-4 pb-4">
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Team Name</label>
+              <input id="new-team-name" type="text" required placeholder="Example: DiamondLink Elite 13U" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+                <label class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">Age Group</label>
+                <input id="new-team-age" type="text" placeholder="12U" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              </div>
+              <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+                <label class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">Record</label>
+                <input id="new-team-record" type="text" placeholder="0-0" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              </div>
+            </div>
+
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">City / Home Field</label>
+              <input id="new-team-city" type="text" placeholder="Home Field" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+
+            <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
+              <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Coach</label>
+              <input id="new-team-coach" type="text" placeholder="Coach name" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+            </div>
+
+            <button type="submit" class="btn-press flex w-full items-center justify-center gap-2 rounded-[24px] bg-slate-950 px-5 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/25">
+              <i data-lucide="plus-circle" class="h-5 w-5"></i> Add Team
+            </button>
+          </form>
+        `;
+
+        this.openSheet('Add New Team', 'Team Builder', html);
+        setTimeout(() => document.getElementById('new-team-name')?.focus(), 100);
+      },
+
+      addTeamFromSheet() {
+        const name = document.getElementById('new-team-name')?.value.trim();
+        const ageGroup = document.getElementById('new-team-age')?.value.trim() || '12U';
+        const city = document.getElementById('new-team-city')?.value.trim() || 'Home Field';
+        const coach = document.getElementById('new-team-coach')?.value.trim() || 'Coach';
+        const record = document.getElementById('new-team-record')?.value.trim() || '0-0';
+
+        if (!name) {
+          alert('Please enter a team name.');
+          return;
+        }
+
+        const newTeam = {
+          id: Date.now(),
+          name,
+          ageGroup,
+          city,
+          coach,
+          record,
+          status: 'Active'
+        };
+
+        this.teams.unshift(newTeam);
+        this.activeTeamId = newTeam.id;
+        this.saveTeams();
+        this.closeAllSheets();
+        this.navigate('team');
+      },
+
+      selectTeam(id) {
+        this.activeTeamId = Number(id);
+        this.saveTeams();
+        this.render();
+      },
+
+      deleteTeam(id) {
+        if (this.teams.length <= 1) {
+          alert('You need at least one team in the app.');
+          return;
+        }
+
+        const team = this.teams.find(item => Number(item.id) === Number(id));
+        if (!team) return;
+
+        if (!confirm(`Remove ${team.name}?`)) return;
+
+        this.teams = this.teams.filter(item => Number(item.id) !== Number(id));
+        if (Number(this.activeTeamId) === Number(id)) {
+          this.activeTeamId = this.teams[0]?.id || null;
+        }
+        this.saveTeams();
+        this.render();
       },
 
       formatTime(seconds) {
@@ -376,7 +830,9 @@
           btn.classList.add('text-slate-400');
         });
 
-        const nav = document.getElementById(`nav-${tab}`);
+        const moreTabs = ['more', 'live', 'guest-hub', 'messages', 'stats', 'fans', 'recap'];
+        const navId = moreTabs.includes(tab) ? 'more' : tab;
+        const nav = document.getElementById(`nav-${navId}`);
         if (nav) {
           nav.classList.remove('text-slate-400');
           nav.classList.add('text-emerald-700', 'bg-emerald-50', 'shadow-sm');
@@ -421,23 +877,28 @@
 
         if (action === 'PITCH') {
           if (payload === 'in_play') {
+            this.logPlay(`${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'Batter'} puts the ball in play.`, 'In Play');
             s.playPhase = 'fielding';
             s.selectedFielder = null;
           } else if (payload === 'ball') {
+            this.logPlay(`Ball ${s.count.balls + 1} to ${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'batter'}.`, 'Pitch');
             s.count.balls++;
             if (s.count.balls >= 4) {
               this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
               this.advanceBatter();
             }
           } else if (payload === 'strike') {
+            this.logPlay(`Strike ${s.count.strikes + 1} to ${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'batter'}.`, 'Pitch');
             s.count.strikes++;
             if (s.count.strikes >= 3) {
               s.count.outs++;
               this.advanceBatter();
             }
           } else if (payload === 'foul') {
+            this.logPlay(`${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'Batter'} fouls it off.`, 'Foul');
             if (s.count.strikes < 2) s.count.strikes++;
           } else if (payload === 'hbp') {
+            this.logPlay(`${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'Batter'} reaches on hit by pitch.`, 'HBP');
             this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
             this.advanceBatter();
           }
@@ -458,10 +919,13 @@
           }
 
           if (payload === 'out') {
+            this.logPlay(`${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'Batter'} is out. Fielder: ${s.selectedFielder || 'N/A'}.`, 'Out');
             s.count.outs++;
           } else if (payload === 'single') {
+            this.logPlay(`${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'Batter'} singles.`, 'Hit');
             this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
           } else if (payload === 'error') {
+            this.logPlay(`${this.getPlayer(s.lineup[s.currentBatterIndex])?.name || 'Batter'} reaches on error.`, 'Error');
             this.forceRunnerToFirst(s.lineup[s.currentBatterIndex]);
           }
 
@@ -600,10 +1064,15 @@
 
         if (this.activeTab === 'dashboard') content = this.renderDashboard();
         else if (this.activeTab === 'team') content = this.renderTeam();
+        else if (this.activeTab === 'score') content = this.renderScore();
+        else if (this.activeTab === 'schedule') content = this.renderSchedule();
+        else if (this.activeTab === 'more') content = this.renderMore();
+        else if (this.activeTab === 'messages') content = this.renderMessages();
+        else if (this.activeTab === 'stats') content = this.renderStats();
+        else if (this.activeTab === 'fans') content = this.renderFans();
         else if (this.activeTab === 'live') content = this.renderLive();
         else if (this.activeTab === 'guest-hub') content = this.renderGuestHub();
         else if (this.activeTab === 'recap') content = this.renderRecap();
-        else if (this.activeTab === 'score') content = this.renderScore();
 
         container.innerHTML = content;
         this.refreshIcons();
@@ -627,7 +1096,8 @@
               <div class="absolute -right-14 -top-16 h-40 w-40 rounded-full bg-emerald-400/25 blur-3xl"></div>
               <div class="absolute -bottom-20 left-4 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl"></div>
               <div class="relative z-10">
-                <div class="mb-5 flex items-center justify-end">
+                <div class="mb-5 flex items-center justify-between">
+                  ${this.pill('Command Center', 'emerald')}
                   <div class="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-black text-emerald-100 ring-1 ring-white/10">
                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
                     ${liveMinutes}
@@ -668,8 +1138,22 @@
                 <p class="font-black">Roster & DJ</p>
                 <p class="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">Player cards, music, and stats.</p>
               </button>
-              <button onclick="app.navigate('guest-hub')" class="btn-press premium-card rounded-3xl p-4 text-left">
+              <button onclick="app.navigate('schedule')" class="btn-press premium-card rounded-3xl p-4 text-left">
                 <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-700 ring-1 ring-cyan-100">
+                  <i data-lucide="calendar-days" class="h-5 w-5"></i>
+                </div>
+                <p class="font-black">Schedule</p>
+                <p class="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">Games, practices, and RSVP.</p>
+              </button>
+              <button onclick="app.navigate('messages')" class="btn-press premium-card rounded-3xl p-4 text-left">
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100">
+                  <i data-lucide="messages-square" class="h-5 w-5"></i>
+                </div>
+                <p class="font-black">Messages</p>
+                <p class="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">Team chat and updates.</p>
+              </button>
+              <button onclick="app.navigate('guest-hub')" class="btn-press premium-card rounded-3xl p-4 text-left">
+                <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
                   <i data-lucide="user-plus" class="h-5 w-5"></i>
                 </div>
                 <p class="font-black">Guest Hub</p>
@@ -721,14 +1205,15 @@
       },
 
       renderTeam() {
+        const activeTeam = this.getActiveTeam();
         let html = `
           <div class="animate-in space-y-4 text-slate-950">
             <div class="flex items-center justify-between px-1">
               <div>
-                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Elite Roster</p>
-                <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">12U Lineup</h2>
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Team Manager</p>
+                <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Clubhouse</h2>
               </div>
-              <button class="btn-press flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-900/20">
+              <button onclick="app.openAddTeamSheet()" class="btn-press flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-900/20" aria-label="Add new team">
                 <i data-lucide="plus" class="h-5 w-5"></i>
               </button>
             </div>
@@ -736,21 +1221,62 @@
             <div class="premium-card rounded-[30px] p-4">
               <div class="grid grid-cols-3 gap-2">
                 <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Teams</p>
+                  <p class="mt-1 text-xl font-black">${this.teams.length}</p>
+                </div>
+                <div class="rounded-2xl bg-emerald-50 p-3 text-center ring-1 ring-emerald-100">
+                  <p class="text-[9px] font-black uppercase tracking-widest text-emerald-600">Active</p>
+                  <p class="mt-1 text-xl font-black">${activeTeam ? this.escape(activeTeam.ageGroup) : '--'}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
                   <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Players</p>
                   <p class="mt-1 text-xl font-black">${ROSTER.length}</p>
                 </div>
-                <div class="rounded-2xl bg-emerald-50 p-3 text-center ring-1 ring-emerald-100">
-                  <p class="text-[9px] font-black uppercase tracking-widest text-emerald-600">Active DJ</p>
-                  <p class="mt-1 text-xl font-black">${this.playingSong ? 'On' : 'Off'}</p>
-                </div>
-                <div class="rounded-2xl bg-slate-50 p-3 text-center ring-1 ring-slate-200">
-                  <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Mode</p>
-                  <p class="mt-1 text-xl font-black">Pro</p>
-                </div>
               </div>
             </div>
-        `;
 
+            <section class="premium-card rounded-[32px] p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">My Teams</p>
+                  <h3 class="mt-1 text-lg font-black text-slate-950">Select or add a team</h3>
+                </div>
+                <button onclick="app.openAddTeamSheet()" class="btn-press rounded-2xl bg-emerald-50 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-700 ring-1 ring-emerald-100">Add</button>
+              </div>
+              <div class="space-y-3">
+                ${this.teams.map(team => {
+                  const isActive = Number(team.id) === Number(this.activeTeamId);
+                  const cardClass = isActive ? 'bg-slate-950 text-white ring-slate-950 shadow-xl shadow-slate-900/20' : 'bg-slate-50 text-slate-950 ring-slate-200';
+                  const subClass = isActive ? 'text-emerald-300' : 'text-slate-500';
+                  return `
+                    <div class="rounded-[26px] p-4 ring-1 transition-all ${cardClass}">
+                      <div class="flex items-start justify-between gap-3">
+                        <button onclick="app.selectTeam(${team.id})" class="min-w-0 flex-1 text-left">
+                          <div class="flex items-center gap-2">
+                            <p class="truncate text-base font-black">${this.escape(team.name)}</p>
+                            ${isActive ? '<span class="rounded-full bg-emerald-400/20 px-2 py-1 text-[8px] font-black uppercase tracking-widest text-emerald-200">Active</span>' : ''}
+                          </div>
+                          <p class="mt-1 text-[10px] font-bold uppercase tracking-widest ${subClass}">${this.escape(team.ageGroup)} • ${this.escape(team.city)} • ${this.escape(team.record)}</p>
+                          <p class="mt-2 text-xs font-bold ${isActive ? 'text-white/70' : 'text-slate-500'}">${this.escape(team.coach)}</p>
+                        </button>
+                        <button onclick="app.deleteTeam(${team.id})" class="btn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-white/10 text-white' : 'bg-white text-slate-400 ring-1 ring-slate-200'}" aria-label="Remove team">
+                          <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        </button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </section>
+
+            <div class="flex items-end justify-between gap-3 px-1 pt-2">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Active Roster</p>
+                <h3 class="mt-1 text-xl font-black tracking-tight text-slate-950">${activeTeam ? this.escape(activeTeam.name) : 'Roster'}</h3>
+              </div>
+              <button onclick="app.openAddPlayerSheet()" class="btn-press rounded-2xl bg-slate-950 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-slate-900/20">Add Player</button>
+            </div>
+        `;
         ROSTER.forEach(p => {
           const isPlaying = this.playingSong === p.id;
           const ring = isPlaying ? 'border-emerald-300 shadow-[0_24px_70px_rgba(16,185,129,.18)]' : 'border-slate-200 shadow-sm';
@@ -769,7 +1295,12 @@
                       <p class="mt-0.5 text-[10px] font-black uppercase tracking-widest text-emerald-300">${p.primary}</p>
                     </div>
                   </div>
-                  <i data-lucide="star" class="h-4 w-4 shrink-0 text-amber-300"></i>
+                  <div class="flex shrink-0 items-center gap-2">
+                    <i data-lucide="star" class="h-4 w-4 text-amber-300"></i>
+                    <button onclick="app.deletePlayer(${p.id})" class="btn-press flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10" aria-label="Remove player">
+                      <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="grid grid-cols-3 gap-2 border-b border-slate-100 bg-white p-3">
@@ -857,6 +1388,24 @@
                 </div>
               </div>
               <button onclick="app.navigate('score')" class="btn-press w-full rounded-3xl bg-slate-950 py-4 text-sm font-black text-white shadow-xl shadow-slate-900/20">Open Score Control</button>
+            </section>
+
+            <section class="premium-card rounded-[30px] p-5">
+              <div class="mb-4">
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Highlights</p>
+                <h3 class="mt-1 text-lg font-black">Clips + Player Moments</h3>
+              </div>
+              <div class="space-y-3">
+                ${this.media.map(item => `
+                  <div class="flex items-center justify-between rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                    <div>
+                      <p class="font-black">${this.escape(item.title)}</p>
+                      <p class="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">${this.escape(item.player)} • ${this.escape(item.game)}</p>
+                    </div>
+                    ${this.pill(this.escape(item.status), item.status === 'Ready' ? 'emerald' : 'amber')}
+                  </div>
+                `).join('')}
+              </div>
             </section>
           </div>
         `;
@@ -958,6 +1507,253 @@
                 </div>
               </div>
             </div>
+          </div>
+        `;
+      },
+
+
+      renderSchedule() {
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Season Planner</p>
+                <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Schedule</h2>
+              </div>
+              <button onclick="app.openAddEventSheet()" class="btn-press flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-900/20">
+                <i data-lucide="calendar-plus" class="h-5 w-5"></i>
+              </button>
+            </div>
+
+            <section class="grid grid-cols-3 gap-3">
+              <div class="premium-card rounded-3xl p-4 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Events</p>
+                <p class="mt-2 text-2xl font-black">${this.schedule.length}</p>
+              </div>
+              <div class="premium-card rounded-3xl p-4 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Roster</p>
+                <p class="mt-2 text-2xl font-black">${ROSTER.length}</p>
+              </div>
+              <div class="premium-card rounded-3xl p-4 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Fans</p>
+                <p class="mt-2 text-2xl font-black">${this.fans.length}</p>
+              </div>
+            </section>
+
+            <section class="space-y-3">
+              ${this.schedule.map(event => `
+                <article class="premium-card rounded-[32px] p-5">
+                  <div class="mb-3 flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="mb-2 flex flex-wrap items-center gap-2">
+                        ${this.pill(this.escape(event.type), event.type === 'Game' ? 'emerald' : 'cyan')}
+                        ${this.pill(this.escape(event.status), 'slate')}
+                      </div>
+                      <h3 class="line-clamp-1 text-xl font-black tracking-tight">${this.escape(event.title)}</h3>
+                      <p class="mt-1 text-xs font-bold text-slate-500">${this.escape(event.date)} • ${this.escape(event.time)}</p>
+                    </div>
+                    <button onclick="app.deleteEvent(${event.id})" class="btn-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                      <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    </button>
+                  </div>
+                  <div class="mt-3 flex items-center gap-2 text-xs font-bold text-slate-500">
+                    <i data-lucide="map-pin" class="h-4 w-4 text-emerald-600"></i>
+                    <span>${this.escape(event.location)}</span>
+                  </div>
+                  ${event.notes ? `<p class="mt-4 rounded-2xl bg-slate-50 p-3 text-xs font-semibold leading-relaxed text-slate-600 ring-1 ring-slate-100">${this.escape(event.notes)}</p>` : ''}
+                  <div class="mt-4 grid grid-cols-2 gap-3">
+                    <button onclick="app.toggleRsvp(${event.id}, 'yes')" class="btn-press rounded-2xl bg-emerald-50 py-3 text-xs font-black uppercase tracking-widest text-emerald-700 ring-1 ring-emerald-100">Going • ${event.rsvpYes}</button>
+                    <button onclick="app.toggleRsvp(${event.id}, 'no')" class="btn-press rounded-2xl bg-red-50 py-3 text-xs font-black uppercase tracking-widest text-red-700 ring-1 ring-red-100">Out • ${event.rsvpNo}</button>
+                  </div>
+                </article>
+              `).join('')}
+            </section>
+          </div>
+        `;
+      },
+
+      renderMessages() {
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Communication</p>
+                <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Messages</h2>
+              </div>
+              <button onclick="app.openMessageSheet()" class="btn-press flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-900/20">
+                <i data-lucide="send" class="h-5 w-5"></i>
+              </button>
+            </div>
+
+            <section class="dark-card rounded-[34px] p-5 text-white">
+              <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-300/20">
+                  <i data-lucide="megaphone" class="h-6 w-6"></i>
+                </div>
+                <div>
+                  <h3 class="font-black">Team Broadcast</h3>
+                  <p class="text-xs font-medium text-slate-400">Updates for coaches, parents, players, and fans.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="space-y-3">
+              ${this.messages.map(message => `
+                <article class="premium-card rounded-[30px] p-5">
+                  <div class="mb-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-11 w-11 items-center justify-center rounded-2xl ${message.tone === 'coach' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'} font-black ring-1 ring-slate-200">${this.escape(message.author).slice(0, 2).toUpperCase()}</div>
+                      <div>
+                        <h3 class="font-black">${this.escape(message.author)}</h3>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${this.escape(message.time)}</p>
+                      </div>
+                    </div>
+                    ${message.tone === 'coach' ? this.pill('Coach', 'emerald') : this.pill('Parent', 'slate')}
+                  </div>
+                  <p class="text-sm font-medium leading-relaxed text-slate-600">${this.escape(message.text)}</p>
+                </article>
+              `).join('')}
+            </section>
+          </div>
+        `;
+      },
+
+      renderStats() {
+        const sortedAvg = [...ROSTER].sort((a, b) => parseFloat(b.stats.AVG || 0) - parseFloat(a.stats.AVG || 0)).slice(0, 5);
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="px-1">
+              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Season Analytics</p>
+              <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Stats</h2>
+            </div>
+
+            <section class="grid grid-cols-3 gap-3">
+              <div class="premium-card rounded-3xl p-4 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">AVG Leader</p>
+                <p class="mt-2 text-xl font-black">${sortedAvg[0]?.stats.AVG || '--'}</p>
+              </div>
+              <div class="premium-card rounded-3xl p-4 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Sprays</p>
+                <p class="mt-2 text-xl font-black">${this.score.hitMarkers.length}</p>
+              </div>
+              <div class="premium-card rounded-3xl p-4 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Plays</p>
+                <p class="mt-2 text-xl font-black">${this.scorebook.length}</p>
+              </div>
+            </section>
+
+            <section class="premium-card rounded-[32px] p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Batting Leaders</p>
+                  <h3 class="mt-1 text-lg font-black">Top Average</h3>
+                </div>
+                ${this.pill('Auto-sorted', 'emerald')}
+              </div>
+              <div class="space-y-3">
+                ${sortedAvg.map((p, index) => `
+                  <div class="flex items-center justify-between rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-xs font-black text-white">${index + 1}</div>
+                      <div>
+                        <p class="font-black">${this.escape(p.name)}</p>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">#${this.escape(p.number)} • ${this.escape(p.primary)}</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-black text-emerald-700">${this.escape(p.stats.AVG)}</p>
+                      <p class="text-[10px] font-bold text-slate-400">AVG</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+
+            <section class="premium-card rounded-[32px] p-5">
+              <div class="mb-4">
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Live Scorebook</p>
+                <h3 class="mt-1 text-lg font-black">Recent Play-by-Play</h3>
+              </div>
+              <div class="space-y-2">
+                ${(this.scorebook.length ? this.scorebook : [{ inning: 'Start', tag: 'Ready', text: 'Start scoring to generate live play-by-play.', time: '--' }]).slice(0, 8).map(play => `
+                  <div class="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                    <div class="mb-1 flex items-center justify-between">
+                      <span class="text-[10px] font-black uppercase tracking-widest text-emerald-700">${this.escape(play.inning)} • ${this.escape(play.tag)}</span>
+                      <span class="text-[10px] font-bold text-slate-400">${this.escape(play.time)}</span>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-600">${this.escape(play.text)}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </section>
+          </div>
+        `;
+      },
+
+      renderFans() {
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="flex items-center justify-between px-1">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">Family Access</p>
+                <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">Fans</h2>
+              </div>
+              <button onclick="app.openInviteFanSheet()" class="btn-press flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-xl shadow-slate-900/20">
+                <i data-lucide="mail-plus" class="h-5 w-5"></i>
+              </button>
+            </div>
+            <section class="space-y-3">
+              ${this.fans.map(fan => `
+                <article class="premium-card rounded-[30px] p-5">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-sm font-black text-emerald-700 ring-1 ring-emerald-100">${this.escape(fan.name).slice(0,2).toUpperCase()}</div>
+                      <div>
+                        <h3 class="font-black">${this.escape(fan.name)}</h3>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">${this.escape(fan.role)}</p>
+                      </div>
+                    </div>
+                    ${this.pill(this.escape(fan.access), 'cyan')}
+                  </div>
+                </article>
+              `).join('')}
+            </section>
+          </div>
+        `;
+      },
+
+      renderMore() {
+        const items = [
+          { title: 'Messages', subtitle: 'Team chat and announcements', icon: 'messages-square', tab: 'messages', tone: 'emerald' },
+          { title: 'Stats', subtitle: 'Season leaders and scorebook', icon: 'bar-chart-3', tab: 'stats', tone: 'cyan' },
+          { title: 'Live + Media', subtitle: 'Broadcast card and highlights', icon: 'radio', tab: 'live', tone: 'amber' },
+          { title: 'Guest Hub', subtitle: 'Pickup games and guest players', icon: 'user-plus', tab: 'guest-hub', tone: 'emerald' },
+          { title: 'Fans', subtitle: 'Family and staff access', icon: 'heart-handshake', tab: 'fans', tone: 'cyan' },
+          { title: 'Game Recap', subtitle: 'Postgame article and summary', icon: 'newspaper', tab: 'recap', tone: 'slate' }
+        ];
+        return `
+          <div class="animate-in space-y-4 text-slate-950">
+            <div class="px-1">
+              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">DiamondLink OS</p>
+              <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">More</h2>
+            </div>
+
+            <section class="dark-card rounded-[34px] p-5 text-white">
+              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-300">GameChanger-style core + your extras</p>
+              <h3 class="mt-2 text-2xl font-black tracking-[-.04em]">One hub for teams, scoring, media, messaging, guests, and family updates.</h3>
+            </section>
+
+            <section class="grid grid-cols-2 gap-3">
+              ${items.map(item => `
+                <button onclick="app.navigate('${item.tab}')" class="btn-press premium-card rounded-3xl p-4 text-left">
+                  <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700 ring-emerald-100' : item.tone === 'cyan' ? 'bg-cyan-50 text-cyan-700 ring-cyan-100' : item.tone === 'amber' ? 'bg-amber-50 text-amber-700 ring-amber-100' : 'bg-slate-100 text-slate-600 ring-slate-200'} ring-1">
+                    <i data-lucide="${item.icon}" class="h-5 w-5"></i>
+                  </div>
+                  <p class="font-black">${item.title}</p>
+                  <p class="mt-1 text-[11px] font-medium leading-relaxed text-slate-500">${item.subtitle}</p>
+                </button>
+              `).join('')}
+            </section>
           </div>
         `;
       },
