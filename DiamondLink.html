@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DiamondLink Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Hide scrollbars for clean mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Smooth bottom sheet transitions */
+        .bottom-sheet {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(100%);
+        }
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+        .backdrop {
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .backdrop.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        /* Tap highlight removal for iOS */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 font-sans text-slate-100 flex items-center justify-center min-h-screen sm:p-4 overflow-hidden">
+
+    <!-- MOBILE DEVICE WRAPPER -->
+    <div id="app-wrapper" class="relative w-full h-[100dvh] sm:h-[850px] sm:w-[400px] bg-slate-900 sm:rounded-[40px] sm:border-[8px] sm:border-slate-800 shadow-2xl flex flex-col overflow-hidden">
+        
+        <!-- HEADER -->
+        <header class="relative z-10 shrink-0 border-b border-slate-200/10 bg-slate-900 px-5 py-4 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield" class="h-4 w-4 text-emerald-400"></i>
+                    <span class="text-[11px] font-black uppercase tracking-widest text-emerald-200">DiamondLink Elite</span>
+                </div>
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-black ring-1 ring-white/10">JD</div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="relative flex-1 overflow-y-auto bg-slate-50 no-scrollbar" id="main-container">
+            <div class="relative min-h-full p-4 pb-8 sm:p-6 flex flex-col" id="view-container">
+                <!-- Content injected by JS -->
+            </div>
+        </main>
+
+        <!-- BOTTOM DOCK -->
+        <div class="z-40 border-t border-slate-200 bg-white px-2 pb-safe pt-2 shrink-0" id="dock-container">
+            <div class="grid grid-cols-4 gap-1 pb-4 sm:pb-2">
+                <button onclick="app.navigate('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center py-2 transition-all text-emerald-600">
+                    <i data-lucide="home" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Home</span>
+                </button>
+                <button onclick="app.navigate('team')" id="nav-team" class="nav-btn flex flex-col items-center py-2 transition-all text-slate-400">
+                    <i data-lucide="users" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Team</span>
+                </button>
+                <button onclick="app.navigate('live')" id="nav-live" class="nav-btn flex flex-col items-center py-2 transition-all text-slate-400">
+                    <i data-lucide="video" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Live</span>
+                </button>
+                <button onclick="app.navigate('guest-hub')" id="nav-guest-hub" class="nav-btn flex flex-col items-center py-2 transition-all text-slate-400">
+                    <i data-lucide="user-plus" class="mb-1 h-[22px] w-[22px]"></i><span class="text-[10px] font-bold">Guests</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- GLOBAL MODALS (Bottom Sheets) -->
+        <div id="backdrop" class="backdrop absolute inset-0 z-[60] bg-slate-900/40 backdrop-blur-[4px]" onclick="app.closeAllSheets()"></div>
+        
+        <div id="sheet-container" class="bottom-sheet absolute bottom-0 left-0 right-0 z-[70] flex max-h-[85%] flex-col rounded-t-[32px] bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.2)] overflow-hidden">
+            <div class="shrink-0 px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-slate-50">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 id="sheet-title" class="text-xl sm:text-2xl font-black text-slate-900">Title</h3>
+                        <p id="sheet-subtitle" class="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 mt-1">Subtitle</p>
+                    </div>
+                    <button onclick="app.closeAllSheets()" class="p-2 sm:p-3 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors"><i data-lucide="plus-circle" class="rotate-45 w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div id="sheet-content" class="flex-1 overflow-y-auto px-4 sm:px-6 pt-4 pb-8 no-scrollbar text-slate-900 bg-slate-50/50">
+                <!-- Sheet content injected by JS -->
+            </div>
+        </div>
+
+    </div> <!-- /MOBILE DEVICE WRAPPER -->
+
+    <!-- APPLICATION LOGIC -->
+    <script>
+        // --- DATA ---
+        const ROSTER = [
+            { id: 1, name: 'Jackson Smith', number: '2', primary: 'P/SS', stats: { AVG: '.345', OPS: '1.012', ERA: '3.12' }, walkup: { title: 'Enter Sandman', artist: 'Metallica' } },
+            { id: 2, name: 'Leo Martinez', number: '5', primary: 'C/3B', stats: { AVG: '.280', OPS: '.850', CS: '40%' }, walkup: { title: 'HUMBLE.', artist: 'Kendrick Lamar' } },
+            { id: 3, name: 'Carter Davis', number: '12', primary: '1B/P', stats: { AVG: '.410', OPS: '1.205', ERA: '2.45' }, walkup: { title: 'Kashmir', artist: 'Led Zeppelin' } },
+            { id: 4, name: 'Noah Wilson', number: '9', primary: 'CF', stats: { AVG: '.315', OPS: '.890', SB: '12' }, walkup: { title: 'Crazy Train', artist: 'Ozzy Osbourne' } },
+            { id: 5, name: 'Mason Taylor', number: '7', primary: '2B', stats: { AVG: '.290', OPS: '.800', SB: '5' }, walkup: { title: 'Thunderstruck', artist: 'AC/DC' } },
+            { id: 6, name: 'Ethan Clark', number: '10', primary: 'LF', stats: { AVG: '.305', OPS: '.820', SB: '2' }, walkup: { title: 'Hells Bells', artist: 'AC/DC' } },
+            { id: 7, name: 'Owen Harris', number: '3', primary: 'RF', stats: { AVG: '.270', OPS: '.750', SB: '1' }, walkup: { title: 'Welcome to the Jungle', artist: 'Guns N Roses' } },
+            { id: 8, name: 'Liam Walker', number: '14', primary: '3B', stats: { AVG: '.330', OPS: '.900', SB: '8' }, walkup: { title: 'Seven Nation Army', artist: 'White Stripes' } },
+            { id: 9, name: 'Aiden Young', number: '11', primary: 'SS', stats: { AVG: '.350', OPS: '.950', SB: '15' }, walkup: { title: 'Lose Yourself', artist: 'Eminem' } },
+        ];
+        const POSITIONS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+
+        // --- GLOBAL APP STATE ---
+        const app = {
+            activeTab: 'dashboard',
+            playingSong: null,
+            clockTimer: null,
+            clockSeconds: 0,
+            clockRunning: true,
+
+            // Guest Hub State
+            guestHub: {
+                search: '',
+                opportunities: [
+                    { id: 1, teamName: 'Texas Rattlers 12U Majors', date: 'Oct 14 - Oct 15', location: 'Plano, TX • Heritage Yards', positions: ['Catcher', 'Pitcher'], ageGroup: '12U', description: 'Looking for a primary catcher for a 4 game guarantee USSSA tournament.', postedBy: 'Coach Mike', applied: false, featured: true },
+                    { id: 2, teamName: 'Dallas Mudcats 11U AAA', date: 'Oct 21', location: 'Frisco, TX', positions: ['Outfield', 'Middle Infield'], ageGroup: '11U', description: 'Need a solid bat and utility fielder for a Saturday only round robin.', postedBy: 'Coach Sarah', applied: false, featured: false },
+                ]
+            },
+
+            // Scorekeeping State Engine
+            score: {
+                gameName: 'Game 1',
+                inning: { number: 1, half: 'top' },
+                count: { balls: 0, strikes: 0, outs: 0 },
+                runs: { away: 0, home: 0 },
+                bases: { first: null, second: null, third: null },
+                playPhase: 'pitch', // pitch, fielding, result
+                selectedFielder: null,
+                tempHitLocation: null,
+                hitMarkers: [],
+                defense: { P: 1, C: 2, '1B': 3, '2B': 5, '3B': 8, SS: 9, LF: 6, CF: 4, RF: 7 },
+                lineup: ROSTER.map(p => p.id),
+                currentBatterIndex: 0,
+                showSprayChart: true,
+                assigningPos: null
+            },
+
+            // --- NAVIGATION ---
+            navigate(tab) {
+                this.activeTab = tab;
+                
+                // Update Dock Colors
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('text-emerald-600');
+                    btn.classList.add('text-slate-400');
+                });
+                document.getElementById(`nav-${tab}`)?.classList.remove('text-slate-400');
+                document.getElementById(`nav-${tab}`)?.classList.add('text-emerald-600');
+
+                this.render();
+            },
+
+            // --- BOTTOM SHEETS ---
+            openSheet(title, subtitle, contentHtml) {
+                document.getElementById('sheet-title').innerText = title;
+                document.getElementById('sheet-subtitle').innerText = subtitle;
+                document.getElementById('sheet-content').innerHTML = contentHtml;
+                document.getElementById('backdrop').classList.add('open');
+                document.getElementById('sheet-container').classList.add('open');
+                lucide.createIcons();
+            },
+            closeAllSheets() {
+                document.getElementById('backdrop').classList.remove('open');
+                document.getElementById('sheet-container').classList.remove('open');
+                this.score.assigningPos = null;
+            },
+
+            // --- ACTIONS ---
+            toggleSong(id) {
+                this.playingSong = this.playingSong === id ? null : id;
+                this.render();
+                if(this.activeTab === 'score') this.openDjSheet();
+            },
+            applyForGuest(id) {
+                const opp = this.guestHub.opportunities.find(o => o.id === id);
+                if (opp) opp.applied = true;
+                this.render();
+            },
+
+            // --- SCORE ENGINE ACTIONS ---
+            scoreAction(action, payload) {
+                const s = this.score;
+                
+                if (action === 'PITCH') {
+                    if (payload === 'in_play') {
+                        s.playPhase = 'fielding';
+                        s.selectedFielder = null;
+                    } else if (payload === 'ball') {
+                        s.count.balls++;
+                        if (s.count.balls >= 4) { s.bases.first = s.lineup[s.currentBatterIndex]; this.advanceBatter(); }
+                    } else if (payload === 'strike') {
+                        s.count.strikes++;
+                        if (s.count.strikes >= 3) { s.count.outs++; this.advanceBatter(); }
+                    } else if (payload === 'foul') {
+                        if (s.count.strikes < 2) s.count.strikes++;
+                    } else if (payload === 'hbp') {
+                        s.bases.first = s.lineup[s.currentBatterIndex]; this.advanceBatter();
+                    }
+                } 
+                else if (action === 'SELECT_FIELDER') {
+                    if(s.playPhase === 'fielding') {
+                        s.selectedFielder = payload;
+                        s.playPhase = 'result';
+                    } else {
+                        // Open assignment sheet
+                        s.assigningPos = payload;
+                        this.openAssignSheet(payload);
+                    }
+                }
+                else if (action === 'FIELD_TAP') {
+                    if(s.playPhase === 'fielding') s.tempHitLocation = payload;
+                }
+                else if (action === 'RESOLVE') {
+                    if (s.tempHitLocation) {
+                        s.hitMarkers.push({ ...s.tempHitLocation, result: payload });
+                    }
+                    if (payload === 'out') { s.count.outs++; }
+                    else if (payload === 'single') { s.bases.first = s.lineup[s.currentBatterIndex]; }
+                    else if (payload === 'error') { s.bases.first = s.lineup[s.currentBatterIndex]; }
+                    
+                    s.tempHitLocation = null;
+                    s.playPhase = 'pitch';
+                    s.selectedFielder = null;
+                    this.advanceBatter();
+                }
+                else if (action === 'ASSIGN_PLAYER') {
+                    if(payload.id === null) {
+                        s.defense[s.assigningPos] = null;
+                    } else {
+                        // Clear from old pos
+                        for(let pos of POSITIONS) { if(s.defense[pos] === payload.id) s.defense[pos] = null; }
+                        s.defense[s.assigningPos] = payload.id;
+                    }
+                    this.closeAllSheets();
+                }
+                else if (action === 'SET_BATTER') {
+                    s.currentBatterIndex = s.lineup.indexOf(payload);
+                    this.closeAllSheets();
+                }
+                else if (action === 'TOGGLE_SPRAY') {
+                    s.showSprayChart = !s.showSprayChart;
+                }
+
+                // Inning Advance Logic
+                if (s.count.outs >= 3) {
+                    s.count = { balls: 0, strikes: 0, outs: 0 };
+                    s.bases = { first: null, second: null, third: null };
+                    if (s.inning.half === 'top') s.inning.half = 'bottom';
+                    else { s.inning.half = 'top'; s.inning.number++; }
+                }
+
+                this.render();
+            },
+
+            advanceBatter() {
+                this.score.count = { balls: 0, strikes: 0, outs: this.score.count.outs };
+                this.score.currentBatterIndex = (this.score.currentBatterIndex + 1) % this.score.lineup.length;
+            },
+
+            // --- BOTTOM SHEET GENERATORS ---
+            openDjSheet() {
+                let html = `<div class="space-y-3">`;
+                ROSTER.forEach(p => {
+                    const isPlaying = this.playingSong === p.id;
+                    const playingClass = isPlaying ? "border-emerald-300 bg-emerald-50 scale-[1.02]" : "border-slate-200 bg-white";
+                    const btnClass = isPlaying ? "bg-emerald-600 text-white shadow-emerald-500/20" : "bg-slate-100 text-slate-500";
+                    const icon = isPlaying ? "pause" : "play";
+                    
+                    html += `
+                        <div class="flex items-center justify-between p-4 rounded-3xl border shadow-sm transition-all ${playingClass}">
+                            <div class="flex items-center gap-4">
+                                <div class="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-700 shrink-0">${p.number}</div>
+                                <div><p class="font-black text-sm text-slate-900 line-clamp-1">${p.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5 truncate max-w-[140px]">${p.walkup?.title || 'Unknown'}</p></div>
+                            </div>
+                            <button onclick="app.toggleSong(${p.id})" class="h-10 w-10 shrink-0 rounded-full flex items-center justify-center shadow-lg ${btnClass}"><i data-lucide="${icon}" class="w-4 h-4 ${!isPlaying?'ml-1':''}"></i></button>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                this.openSheet("Walkup Music", "DJ Soundboard", html);
+            },
+
+            openAssignSheet(pos) {
+                let html = `
+                    <div class="space-y-2 pb-4 text-slate-900">
+                        <button onclick="app.scoreAction('ASSIGN_PLAYER', {id: null})" class="w-full py-5 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs uppercase mb-4 active:bg-slate-50">Clear Position</button>
+                `;
+                ROSTER.forEach(p => {
+                    const isAssigned = this.score.defense[pos] === p.id;
+                    const cls = isAssigned ? "bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/10 shadow-lg" : "bg-white border-slate-100";
+                    html += `
+                        <button onclick="app.scoreAction('ASSIGN_PLAYER', {id: ${p.id}})" class="w-full flex items-center justify-between p-5 rounded-2xl border transition-all active:scale-[0.98] ${cls}">
+                            <span class="font-black">${p.number}. ${p.name}</span>
+                            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">${p.primary}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+                this.openSheet(`Assign ${pos}`, "Team Roster", html);
+            },
+
+            openLineupSheet() {
+                let html = `<div class="space-y-2 pb-4 text-slate-900">`;
+                this.score.lineup.forEach((id, idx) => {
+                    const p = ROSTER.find(x => x.id === id);
+                    const isCurrent = this.score.currentBatterIndex === idx;
+                    const cls = isCurrent ? "bg-emerald-50 border-emerald-500 shadow-lg" : "bg-white border-slate-100";
+                    const numCls = isCurrent ? "text-emerald-700" : "text-slate-300";
+                    const nameCls = isCurrent ? "text-emerald-900" : "text-slate-900";
+                    html += `
+                        <button onclick="app.scoreAction('SET_BATTER', ${id})" class="w-full flex items-center gap-4 p-5 rounded-2xl border transition-all active:scale-[0.98] ${cls}">
+                            <span class="text-xs font-black ${numCls}">${idx+1}.</span>
+                            <span class="font-black text-sm ${nameCls}">${p.name}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+                this.openSheet("Select Next Batter", "Lineup Order", html);
+            },
+
+            // --- RENDERERS ---
+            render() {
+                const container = document.getElementById('view-container');
+                let content = '';
+
+                if (this.activeTab === 'dashboard') content = this.renderDashboard();
+                else if (this.activeTab === 'team') content = this.renderTeam();
+                else if (this.activeTab === 'live') content = this.renderLive();
+                else if (this.activeTab === 'guest-hub') content = this.renderGuestHub();
+                else if (this.activeTab === 'recap') content = this.renderRecap();
+                else if (this.activeTab === 'score') content = this.renderScore();
+
+                container.innerHTML = content;
+                lucide.createIcons();
+
+                // Attach field event listener if score view
+                if(this.activeTab === 'score') {
+                    document.getElementById('css-field')?.addEventListener('click', (e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = ((e.clientX - rect.left) / rect.width) * 100;
+                        const y = ((e.clientY - rect.top) / rect.height) * 100;
+                        this.scoreAction('FIELD_TAP', {x, y});
+                    });
+                }
+            },
+
+            renderDashboard() {
+                return `
+                    <div class="space-y-4 text-slate-900 pb-4">
+                        <div class="rounded-3xl bg-slate-900 p-6 text-white shadow-xl relative overflow-hidden">
+                            <div class="relative z-10">
+                                <h2 class="text-2xl font-black mb-2 leading-tight">Elite Game Day Command</h2>
+                                <p class="text-slate-400 text-sm mb-6 max-w-[240px]">Manage live scoring, roster DJ, and recruiting.</p>
+                                <button onclick="app.navigate('score')" class="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 py-4 font-black shadow-lg shadow-emerald-500/30 active:scale-95 transition-transform">
+                                    <i data-lucide="activity" class="w-5 h-5"></i> Score Live Game
+                                </button>
+                            </div>
+                            <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><i data-lucide="trophy" class="w-24 h-24"></i></div>
+                        </div>
+                        <div class="rounded-3xl bg-white p-5 border border-slate-200 shadow-sm">
+                            <h3 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Last Activity</h3>
+                            <button onclick="app.navigate('recap')" class="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 active:scale-[0.98] transition-all">
+                            <div class="flex items-center gap-4">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 font-black">W</div>
+                                <div class="text-left"><p class="font-bold text-slate-900 line-clamp-1">Won 15-3 vs Legacy</p><p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Game Recap</p></div>
+                            </div>
+                            <i data-lucide="chevron-right" class="text-slate-300 w-5 h-5 shrink-0"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderTeam() {
+                let html = `
+                    <div class="space-y-4 text-slate-900 pb-4">
+                        <div class="flex items-center justify-between px-1 mb-2">
+                            <h2 class="text-2xl font-black">12U Roster</h2>
+                            <button class="h-10 w-10 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-full"><i data-lucide="plus-circle" class="w-5 h-5"></i></button>
+                        </div>
+                `;
+                ROSTER.forEach(p => {
+                    const isPlaying = this.playingSong === p.id;
+                    const ring = isPlaying ? "border-emerald-300 shadow-[0_20px_60px_rgba(16,185,129,0.2)]" : "border-slate-200 shadow-sm";
+                    const btnClass = isPlaying ? "bg-emerald-500 text-white shadow-lg scale-110" : "bg-slate-200 text-slate-500";
+                    const icon = isPlaying ? "pause" : "play";
+                    
+                    html += `
+                        <div class="rounded-3xl border bg-white overflow-hidden transition-all ${ring}">
+                            <div class="bg-slate-900 p-4 text-white flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="h-12 w-12 shrink-0 rounded-xl bg-white/10 flex items-center justify-center font-black ring-1 ring-white/10">${p.number}</div>
+                                    <div><p class="font-black line-clamp-1">${p.name}</p><p class="text-[10px] uppercase font-bold text-emerald-400 mt-0.5">${p.primary}</p></div>
+                                </div>
+                                <i data-lucide="star" class="text-amber-400 w-4 h-4 shrink-0"></i>
+                            </div>
+                            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="music" class="text-emerald-500 w-4 h-4 shrink-0"></i>
+                                    <div><p class="text-xs font-black text-slate-800 truncate max-w-[160px] sm:max-w-[200px]">${p.walkup?.title || 'Track'}</p><p class="text-[10px] text-slate-400 mt-0.5">${p.walkup?.artist || 'Artist'}</p></div>
+                                </div>
+                                <button onclick="app.toggleSong(${p.id})" class="h-10 w-10 shrink-0 rounded-full flex items-center justify-center transition-all ${btnClass}">
+                                    <i data-lucide="${icon}" class="w-4 h-4 ${!isPlaying ? 'ml-0.5' : ''}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                return html + `</div>`;
+            },
+
+            renderLive() {
+                return `
+                    <div class="space-y-4 text-slate-900 pb-4">
+                        <h2 class="text-2xl font-black px-1">Live Games</h2>
+                        <div class="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+                            <div class="aspect-video bg-slate-900 relative">
+                                <div class="absolute top-4 left-4 bg-red-600 px-2 py-1 rounded text-[10px] font-black uppercase flex items-center gap-2 z-10 shadow-lg">
+                                    <div class="h-1.5 w-1.5 rounded-full bg-white animate-[pulse_1s_ease-in-out_infinite]"></div> Live
+                                </div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i data-lucide="play-circle" class="w-12 h-12 text-white opacity-40 hover:opacity-80 transition-opacity cursor-pointer"></i>
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-slate-100 flex justify-between items-end">
+                                <div><p class="font-black line-clamp-1">Texas Rattlers vs Mudcats</p><p class="text-xs text-slate-400 mt-1">USSSA State Championship</p></div>
+                                <div class="text-right shrink-0 ml-2"><p class="text-xs font-black text-emerald-600 uppercase tracking-widest">Top 4th</p><p class="text-[10px] font-bold text-slate-400 mt-1">142 viewers</p></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderGuestHub() {
+                let html = `
+                    <div class="space-y-4 text-slate-900 pb-4">
+                        <h2 class="text-2xl font-black px-1">Guest Hub</h2>
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+                            <input type="text" placeholder="Search pickup games..." class="w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 py-3.5 text-sm font-bold shadow-sm outline-none text-slate-900 focus:ring-2 ring-emerald-500/20" />
+                        </div>
+                `;
+                this.guestHub.opportunities.forEach(opp => {
+                    const btnCls = opp.applied ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-900 text-white shadow-lg active:scale-95";
+                    const btnText = opp.applied ? "Applied" : "Message Coach";
+                    html += `
+                        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded">${opp.ageGroup}</span>
+                                ${opp.featured ? `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-1 rounded border border-emerald-100">Featured</span>` : ''}
+                            </div>
+                            <h3 class="font-black text-lg mb-1 line-clamp-1">${opp.teamName}</h3>
+                            <p class="text-xs text-slate-500 mb-3">${opp.location}</p>
+                            <p class="text-xs text-slate-600 mb-5 leading-relaxed">${opp.description}</p>
+                            <button onclick="app.applyForGuest(${opp.id})" ${opp.applied?'disabled':''} class="w-full py-3.5 rounded-xl font-black text-sm transition-all ${btnCls}">${btnText}</button>
+                        </div>
+                    `;
+                });
+                return html + `</div>`;
+            },
+
+            renderRecap() {
+                return `
+                    <div class="rounded-3xl bg-white border border-slate-200 overflow-hidden shadow-sm text-slate-900 pb-6 mb-4 flex flex-col h-full min-h-[500px]">
+                        <div class="bg-slate-900 p-6 text-white text-center relative shrink-0">
+                            <button onclick="app.navigate('dashboard')" class="absolute left-6 top-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 mt-2 sm:mt-0">Sat Mar 28, 7:00 PM ET</p>
+                            <div class="flex items-center justify-center gap-8">
+                                <div class="flex flex-col items-center"><p class="text-4xl font-black mb-1">15</p><p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">CNSC</p></div>
+                                <div class="h-12 w-px bg-white/20"></div>
+                                <div class="flex flex-col items-center"><p class="text-4xl font-black mb-1">3</p><p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">DMND</p></div>
+                            </div>
+                        </div>
+                        <div class="p-6 flex-1 overflow-y-auto no-scrollbar">
+                            <h2 class="text-2xl font-black mb-4 leading-tight">Ayden collected three hits as Canes Central Alexander 11U defeat Diamond Legacy</h2>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-6 tracking-widest">March 28, 2026 vs Diamond Legacy 11U Red</p>
+                            <div class="space-y-4 text-sm text-slate-600 leading-relaxed font-medium">
+                                <p>Ayden collected three hits in four at bats as Canes Central Alexander 11U defeated Diamond Legacy 11U Red 15 to 3 on Saturday.</p>
+                                <p>Canes Central Alexander 11U opened the scoring in the top of the first thanks to two walks.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderScore() {
+                const s = this.score;
+                const currentBatter = ROSTER.find(p => p.id === s.lineup[s.currentBatterIndex]) || ROSTER[0];
+                const inningStr = `${s.inning.half === 'top' ? 'Top' : 'Bot'} ${s.inning.number}`;
+                
+                // Build Fielders HTML
+                let fieldersHtml = '';
+                const posCoords = {
+                    P: { l: '50%', t: '59%' }, C: { l: '50%', t: '94%' },
+                    '1B': { l: '78%', t: '48%' }, '2B': { l: '62%', t: '30%' },
+                    '3B': { l: '22%', t: '48%' }, SS: { l: '38%', t: '30%' },
+                    LF: { l: '18%', t: '15%' }, CF: { l: '50%', t: '10%' }, RF: { l: '82%', t: '15%' }
+                };
+
+                POSITIONS.forEach(pos => {
+                    const assignedId = s.defense[pos];
+                    const player = ROSTER.find(p => p.id === assignedId);
+                    const isSelected = s.selectedFielder === pos;
+                    const isFielding = s.playPhase === 'fielding';
+                    
+                    let btnClass = "bg-slate-900 border-slate-700 text-white opacity-90";
+                    if(isSelected) btnClass = "bg-amber-400 border-white scale-125 z-40 text-amber-900";
+                    else if(isFielding) btnClass = "bg-emerald-400 border-white animate-[pulse_1s_ease-in-out_infinite] text-emerald-900";
+
+                    fieldersHtml += `
+                        <div class="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 z-30" style="left: ${posCoords[pos].l}; top: ${posCoords[pos].t}">
+                            <button onclick="event.stopPropagation(); app.scoreAction('SELECT_FIELDER', '${pos}')" class="h-8 w-8 rounded-full border-2 font-black text-[9px] shadow-lg transition-all ${btnClass}">${pos}</button>
+                            ${player && !isFielding ? `<div class="bg-black/60 backdrop-blur-sm text-[8px] font-bold text-white px-1 py-0.5 rounded mt-0.5 whitespace-nowrap">${player.name.split(' ')[1]}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                // Build Hit Markers HTML
+                let markersHtml = '';
+                if(s.showSprayChart) {
+                    s.hitMarkers.forEach(m => {
+                        const bg = m.result === 'out' ? 'bg-red-500' : 'bg-emerald-500';
+                        markersHtml += `<div class="absolute h-2 w-2 rounded-full -translate-x-1/2 -translate-y-1/2 border border-white shadow-sm pointer-events-none z-10 ${bg}" style="left: ${m.x}%; top: ${m.y}%"></div>`;
+                    });
+                }
+                if(s.tempHitLocation) {
+                    markersHtml += `<div class="absolute h-6 w-6 rounded-full -translate-x-1/2 -translate-y-1/2 border-2 border-white bg-amber-500 shadow-lg z-20 flex items-center justify-center" style="left: ${s.tempHitLocation.x}%; top: ${s.tempHitLocation.y}%"><div class="h-1 w-1 bg-white rounded-full animate-ping"></div></div>`;
+                }
+
+                // Controls HTML
+                let controlsHtml = '';
+                const btnBase = "w-full py-4 rounded-2xl border font-black text-[11px] sm:text-xs uppercase tracking-widest transition-all active:scale-95";
+                const tBlue = "bg-blue-50 text-blue-700 border-blue-200 ring-1 ring-blue-100";
+                const tRed = "bg-red-50 text-red-700 border-red-200 ring-1 ring-red-100";
+                const tSlate = "bg-slate-100 text-slate-600 border-slate-200";
+                const tEmerald = "bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 border-emerald-500";
+                const tAmber = "bg-amber-500 text-white shadow-xl shadow-amber-500/30 border-amber-400";
+
+                if (s.playPhase === 'pitch') {
+                    controlsHtml = `
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="app.scoreAction('PITCH', 'ball')" class="${btnBase} ${tBlue}">Ball</button>
+                                <button onclick="app.scoreAction('PITCH', 'strike')" class="${btnBase} ${tRed}">Strike</button>
+                                <button onclick="app.scoreAction('PITCH', 'foul')" class="${btnBase} ${tSlate}">Foul</button>
+                                <button onclick="app.scoreAction('PITCH', 'in_play')" class="${btnBase} ${tEmerald}">In Play</button>
+                                <div class="col-span-2"><button onclick="app.scoreAction('PITCH', 'hbp')" class="${btnBase} ${tAmber}">Hit By Pitch</button></div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-black uppercase text-slate-400 tracking-widest border-t border-slate-100 pt-4">
+                                <span>B: ${s.count.balls}</span><span>S: ${s.count.strikes}</span><span class="text-slate-900 font-black">Outs: ${s.count.outs}</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (s.playPhase === 'fielding') {
+                    controlsHtml = `
+                        <div class="py-6 text-center">
+                            <div class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-6 py-3 rounded-2xl font-black animate-bounce shadow-sm border border-emerald-200">
+                                <i data-lucide="target" class="w-5 h-5"></i> Tap Fielder & Hit Location
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    controlsHtml = `
+                        <div class="space-y-4">
+                            <p class="text-center text-[10px] font-black uppercase tracking-widest text-slate-400">Play from ${s.selectedFielder}</p>
+                            <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                                <button onclick="app.scoreAction('RESOLVE', 'out')" class="${btnBase} ${tRed}">Out</button>
+                                <button onclick="app.scoreAction('RESOLVE', 'single')" class="${btnBase} ${tEmerald}">Hit</button>
+                                <button onclick="app.scoreAction('RESOLVE', 'error')" class="${btnBase} ${tAmber}">Error</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Base Colors
+                const b1 = s.bases.first ? "bg-emerald-500 ring-2 ring-emerald-300 z-10 scale-125" : "bg-white";
+                const b2 = s.bases.second ? "bg-emerald-500 ring-2 ring-emerald-300 z-10 scale-125" : "bg-white";
+                const b3 = s.bases.third ? "bg-emerald-500 ring-2 ring-emerald-300 z-10 scale-125" : "bg-white";
+
+                return `
+                    <div class="rounded-[32px] bg-white border border-slate-200 overflow-hidden shadow-2xl text-slate-900 flex flex-col h-full min-h-full">
+                        <!-- SCORE HEADER -->
+                        <div class="bg-slate-900 p-4 text-white flex items-center justify-between shrink-0 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-emerald-500/5"></div>
+                            <button onclick="app.navigate('dashboard')" class="p-2 relative z-10 hover:bg-white/10 rounded-full transition-colors"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                            <div class="text-center relative z-10">
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-0.5">${inningStr}</p>
+                                <p class="font-black text-xl tracking-tighter">${s.runs.away} — ${s.runs.home}</p>
+                            </div>
+                            <div class="flex gap-2 relative z-10">
+                                <button onclick="app.openDjSheet()" class="p-2.5 rounded-2xl bg-white/10 active:scale-90 transition-transform"><i data-lucide="music" class="w-[18px] h-[18px]"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- MAIN PLAY AREA -->
+                        <div class="flex-1 p-4 overflow-y-auto no-scrollbar space-y-4 bg-slate-50 flex flex-col">
+                            <!-- Batter Strip -->
+                            <div class="p-4 rounded-3xl bg-white border border-slate-200 flex justify-between items-center shadow-sm shrink-0">
+                                <div><p class="text-[10px] font-bold uppercase text-slate-400 mb-0.5 tracking-widest">Next Batter</p><p class="text-lg font-black text-slate-900 line-clamp-1">#${currentBatter.number} ${currentBatter.name.split(' ')[1]}</p></div>
+                                <button onclick="app.openLineupSheet()" class="px-4 py-2 ml-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-widest ring-1 ring-emerald-100 active:bg-emerald-100 shrink-0">Lineup</button>
+                            </div>
+
+                            <!-- PURE CSS FIELD -->
+                            <div class="flex-1 flex flex-col justify-center max-w-[360px] mx-auto w-full">
+                                <div id="css-field" class="aspect-square w-full rounded-3xl bg-[#3e8e4f] relative overflow-hidden border-2 border-slate-300 shadow-[inset_0_0_20px_rgba(0,0,0,0.2)] cursor-crosshair">
+                                    <!-- Outfield Stripes -->
+                                    <div class="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0%,transparent_10%,rgba(0,0,0,0.06)_10%,rgba(0,0,0,0.06)_20%)] pointer-events-none"></div>
+
+                                    <!-- Foul Lines -->
+                                    <div class="absolute left-1/2 bottom-[16%] w-0.5 h-[150%] bg-white/60 origin-bottom rotate-45 pointer-events-none"></div>
+                                    <div class="absolute left-1/2 bottom-[16%] w-0.5 h-[150%] bg-white/60 origin-bottom -rotate-45 pointer-events-none"></div>
+
+                                    <!-- Infield Dirt -->
+                                    <div class="absolute left-1/2 top-[54%] aspect-square w-[42%] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-xl border-2 border-[#945C33] bg-[#c08457] pointer-events-none shadow-sm"></div>
+
+                                    <!-- Infield Grass -->
+                                    <div class="absolute left-1/2 top-[54%] aspect-square w-[28%] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded bg-[#3e8e4f] pointer-events-none shadow-[inset_0_0_10px_rgba(0,0,0,0.15)]"></div>
+
+                                    <!-- Home Plate Dirt -->
+                                    <div class="absolute left-1/2 top-[84%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c08457] pointer-events-none"></div>
+
+                                    <!-- Pitcher's Mound -->
+                                    <div class="absolute left-1/2 top-[54%] h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c08457] border border-[#945C33] pointer-events-none shadow-sm"></div>
+                                    <div class="absolute left-1/2 top-[54%] h-1 w-4 -translate-x-1/2 -translate-y-1/2 bg-white pointer-events-none rounded-full"></div>
+
+                                    <!-- Bases -->
+                                    <div class="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-sm transition-colors duration-300 pointer-events-none ${b2}" style="left: 50%; top: 24%"></div>
+                                    <div class="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-sm transition-colors duration-300 pointer-events-none ${b1}" style="left: 80%; top: 54%"></div>
+                                    <div class="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 shadow-sm transition-colors duration-300 pointer-events-none ${b3}" style="left: 20%; top: 54%"></div>
+                                    <div class="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 bg-white shadow-sm pointer-events-none" style="left: 50%; top: 84%; clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%)"></div>
+
+                                    <!-- Spray Chart Toggle -->
+                                    <button onclick="event.stopPropagation(); app.scoreAction('TOGGLE_SPRAY')" class="absolute top-2 right-2 z-20 h-7 w-7 rounded-full bg-black/50 text-white flex items-center justify-center backdrop-blur-md hover:bg-black/70 transition-colors">
+                                        <i data-lucide="map" class="w-[14px] h-[14px] ${s.showSprayChart ? 'text-emerald-400' : 'text-white opacity-50'}"></i>
+                                    </button>
+
+                                    <!-- Injected Markers & Fielders -->
+                                    ${markersHtml}
+                                    ${fieldersHtml}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONTROLS -->
+                        <div class="p-4 bg-white border-t border-slate-200 shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-10">
+                            ${controlsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.render();
+        });
+    </script>
+</body>
+</html>
