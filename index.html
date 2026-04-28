@@ -150,6 +150,56 @@
                 assigningPos: null
             },
 
+            // --- CLOCK METHODS ---
+            formatTime(seconds) {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+                if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            },
+
+            toggleClock() {
+                this.clockRunning = !this.clockRunning;
+                this.renderClockUI();
+            },
+
+            startClock() {
+                if (!this.clockTimer) {
+                    this.clockTimer = setInterval(() => {
+                        if (this.clockRunning) {
+                            this.clockSeconds++;
+                            this.renderClockUI();
+                        }
+                    }, 1000);
+                }
+            },
+
+            renderClockUI() {
+                const timeEl = document.getElementById('clock-time');
+                const statusEl = document.getElementById('clock-status');
+                const iconEl = document.querySelector('#clock-icon');
+                
+                if (timeEl) timeEl.innerText = this.formatTime(this.clockSeconds);
+                if (statusEl) {
+                    statusEl.innerText = this.clockRunning ? 'Live' : 'Paused';
+                    if (this.clockRunning) {
+                        statusEl.className = "text-[8px] uppercase font-bold mt-0.5 text-emerald-400 animate-pulse";
+                    } else {
+                        statusEl.className = "text-[8px] uppercase font-bold mt-0.5 text-slate-500";
+                    }
+                }
+                if (iconEl) {
+                    if (this.clockRunning) {
+                        iconEl.classList.remove('text-amber-400');
+                        iconEl.classList.add('text-emerald-400');
+                    } else {
+                        iconEl.classList.remove('text-emerald-400');
+                        iconEl.classList.add('text-amber-400');
+                    }
+                }
+            },
+
             // --- NAVIGATION ---
             navigate(tab) {
                 this.activeTab = tab;
@@ -503,6 +553,11 @@
                 const currentBatter = ROSTER.find(p => p.id === s.lineup[s.currentBatterIndex]) || ROSTER[0];
                 const inningStr = `${s.inning.half === 'top' ? 'Top' : 'Bot'} ${s.inning.number}`;
                 
+                const clockIconColor = this.clockRunning ? 'text-emerald-400' : 'text-amber-400';
+                const clockStatusClass = this.clockRunning ? 'text-emerald-400 animate-pulse' : 'text-slate-500';
+                const clockStatusText = this.clockRunning ? 'Live' : 'Paused';
+                const timeStr = this.formatTime(this.clockSeconds);
+
                 // Build Fielders HTML
                 let fieldersHtml = '';
                 const posCoords = {
@@ -602,7 +657,14 @@
                                 <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-0.5">${inningStr}</p>
                                 <p class="font-black text-xl tracking-tighter">${s.runs.away} — ${s.runs.home}</p>
                             </div>
-                            <div class="flex gap-2 relative z-10">
+                            <div class="flex gap-3 relative z-10 items-center">
+                                <div class="text-right flex flex-col items-end">
+                                    <button onclick="app.toggleClock()" class="font-mono text-xs font-bold text-white flex items-center gap-1 hover:text-slate-300 transition-colors">
+                                        <i data-lucide="clock" id="clock-icon" class="w-3 h-3 ${clockIconColor}"></i>
+                                        <span id="clock-time">${timeStr}</span>
+                                    </button>
+                                    <div id="clock-status" class="text-[8px] uppercase font-bold mt-0.5 ${clockStatusClass}">${clockStatusText}</div>
+                                </div>
                                 <button onclick="app.openDjSheet()" class="p-2.5 rounded-2xl bg-white/10 active:scale-90 transition-transform"><i data-lucide="music" class="w-[18px] h-[18px]"></i></button>
                             </div>
                         </div>
@@ -667,6 +729,7 @@
 
         // Initialize App
         document.addEventListener('DOMContentLoaded', () => {
+            app.startClock();
             app.render();
         });
     </script>
