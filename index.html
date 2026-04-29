@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>DiamondLink Elite</title>
+  <title>DIAMONDPlay</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -213,7 +213,7 @@
               <i data-lucide="diamond" class="h-4 w-4 text-emerald-300"></i>
             </span>
             <div>
-              <p class="text-[11px] font-black uppercase tracking-[.22em] text-emerald-200">DiamondLink</p>
+              <p class="text-[11px] font-black uppercase tracking-[.22em] text-emerald-200">DIAMONDPlay</p>
               <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Elite Game Day OS</p>
             </div>
           </div>
@@ -296,16 +296,16 @@
     const POSITIONS = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 
     const DEFAULT_TEAMS = [
-      { id: 101, name: 'DiamondLink Elite 12U', ageGroup: '12U', city: 'Home Field', coach: 'Coach JD', record: '0-0', status: 'Active' }
+      { id: 101, name: 'DIAMONDPlay 12U', ageGroup: '12U', city: 'Home Field', coach: 'Coach JD', record: '0-0', status: 'Active' }
     ];
 
     const DEFAULT_SCHEDULE = [
-      { id: 201, type: 'Game', title: 'DiamondLink Elite vs Legacy Red', date: 'Apr 30, 2026', time: '6:30 PM', location: 'Home Field', status: 'Scheduled', rsvpYes: 9, rsvpNo: 1, notes: 'Arrive 45 minutes early for warmups.' },
+      { id: 201, type: 'Game', title: 'DIAMONDPlay vs Legacy Red', date: 'Apr 30, 2026', time: '6:30 PM', location: 'Home Field', status: 'Scheduled', rsvpYes: 9, rsvpNo: 1, notes: 'Arrive 45 minutes early for warmups.' },
       { id: 202, type: 'Practice', title: 'Defense + Situational Hitting', date: 'May 2, 2026', time: '5:30 PM', location: 'Cage 3 / Field 2', status: 'Practice', rsvpYes: 8, rsvpNo: 0, notes: 'Bring turf shoes and helmet.' }
     ];
 
     const DEFAULT_MESSAGES = [
-      { id: 301, author: 'Coach JD', text: 'Welcome to DiamondLink Elite. Schedule, scorekeeping, DJ, live updates, and guest opportunities will live here.', time: 'Today • 9:00 AM', tone: 'coach' },
+      { id: 301, author: 'Coach JD', text: 'Welcome to DIAMONDPlay. Schedule, scorekeeping, DJ, live updates, and guest opportunities will live here.', time: 'Today • 9:00 AM', tone: 'coach' },
       { id: 302, author: 'Team Parent', text: 'Please update RSVP for this week so we can plan pitching and lineup.', time: 'Today • 9:12 AM', tone: 'parent' }
     ];
 
@@ -546,7 +546,7 @@
           <form onsubmit="event.preventDefault(); app.addEventFromSheet();" class="space-y-4 pb-4">
             <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
               <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Event Title</label>
-              <input id="new-event-title" type="text" required placeholder="Example: DiamondLink vs Mudcats" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              <input id="new-event-title" type="text" required placeholder="Example: DIAMONDPlay vs Mudcats" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div class="rounded-[24px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
@@ -692,7 +692,7 @@
           <form onsubmit="event.preventDefault(); app.addTeamFromSheet();" class="space-y-4 pb-4">
             <div class="rounded-[28px] bg-white p-4 ring-1 ring-slate-200 shadow-sm">
               <label class="text-[10px] font-black uppercase tracking-[.22em] text-slate-400">Team Name</label>
-              <input id="new-team-name" type="text" required placeholder="Example: DiamondLink Elite 13U" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
+              <input id="new-team-name" type="text" required placeholder="Example: DIAMONDPlay 13U" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -1734,7 +1734,7 @@
         return `
           <div class="animate-in space-y-4 text-slate-950">
             <div class="px-1">
-              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">DiamondLink OS</p>
+              <p class="text-[10px] font-black uppercase tracking-[.22em] text-emerald-600">DIAMONDPlay</p>
               <h2 class="mt-1 text-3xl font-black tracking-[-.04em]">More</h2>
             </div>
 
